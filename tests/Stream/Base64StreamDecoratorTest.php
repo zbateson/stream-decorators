@@ -16,7 +16,12 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
 {
     public function testReadAndRewind()
     {
-        $str = 'Feeling very uncreative at the moment, so this is the best I\'ve got';
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
         $stream = Psr7\stream_for(base64_encode($str));
         $b64Stream = new Base64StreamDecorator($stream);
 
@@ -31,7 +36,12 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testReadContents()
     {
-        $str = 'Wubalubadubduuuuuuuuuuuuuuuuuuuuuuuuuuuuub!';
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
         for ($i = 0; $i < strlen($str); ++$i) {
             $substr = substr($str, 0, $i + 1);
             $stream = Psr7\stream_for(base64_encode($substr));
@@ -42,8 +52,12 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testReadToEof()
     {
-        $str = 'Feeling very uncreative at the moment, so this is the best I\'ve got';
-
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
         for ($i = 0; $i < strlen($str); ++$i) {
             $stream = Psr7\stream_for(base64_encode(substr($str, $i)));
             $b64Stream = new Base64StreamDecorator($stream);
@@ -63,8 +77,12 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testGetSize()
     {
-        $str = 'Wubalubadubduuuuuuuuuuuuuuuuuuuuuuuuuuuuub!';
-
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
         $stream = Psr7\stream_for(base64_encode($str));
         $b64Stream = new Base64StreamDecorator($stream);
         $this->assertNull($b64Stream->getSize());
@@ -72,7 +90,12 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testTell()
     {
-        $str = 'Feeling very uncreative at the moment, so this is the best I\'ve got';
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
         $stream = Psr7\stream_for(base64_encode($str));
         $b64Stream = new Base64StreamDecorator($stream);
 
