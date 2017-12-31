@@ -6,68 +6,26 @@
  */
 namespace ZBateson\MailMimeParser\Stream;
 
-use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use RuntimeException;
-
 /**
  * GuzzleHttp\Psr7 stream decoder extension for base64 streams.
  *
- * Pass it a Psr7 stream, and the extension will decode/encode bytes as they're
- * read/written.
+ * Seeking is supported only back to the beginning of the stream.
  *
- * Because the stream may contain non-base64 characters (e.g. newlines, or
- * invalid characters that should be ignored), seeking is only supported back to
- * the beginning of the stream.
+ * Mixing read and write operations is not supported.  Either read to a stream,
+ * or write, but not both.
  *
- * The size of the stream is also not determinable without reading it, and so
- * returns null.
+ * getSize will always return null, as the size isn't determinable without
+ * reading the entire stream's contents.
  *
  * @author Zaahid Bateson
  */
-class Base64StreamDecorator implements StreamInterface
+class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
 {
-    use StreamDecoratorTrait {
-        StreamDecoratorTrait::getSize as private getEncodedSize;
-        StreamDecoratorTrait::eof as private eofEncoded;
-        StreamDecoratorTrait::tell as private tellEncoded;
-        StreamDecoratorTrait::seek as private seekEncoded;
-        StreamDecoratorTrait::write as private writeEncoded;
-        StreamDecoratorTrait::read as private readEncoded;
-    }
-
-    /**
-     * @var int current read/write position
-     */
-    private $position = 0;
-
     /**
      * @var int calculated read/write remainder for next read or write
      *      operation.
      */
-    private $remainder = 0;
-
-    /**
-     * Not determinable without reading the contents of the stream to filter out
-     * invalid bytes/new lines.
-     *
-     * @return null
-     */
-    public function getSize()
-    {
-        return null;
-    }
-
-    /**
-     * Overridden to return the calculated position as bytes in the decoded
-     * stream.
-     *
-     * @return int
-     */
-    public function tell()
-    {
-        return $this->position;
-    }
+    protected $remainder = 0;
 
     /**
      * Overridden to seek to the correct un-encoded position in the underlying
@@ -78,19 +36,8 @@ class Base64StreamDecorator implements StreamInterface
      */
     public function seek($offset, $whence = SEEK_SET)
     {
-        $pos = $offset;
-        if ($whence === SEEK_CUR) {
-            $pos = $this->tell() + $offset;
-        }
-        if ($pos !== 0 || $whence === SEEK_END) {
-            throw new RuntimeException(
-                "Only rewinding or seeking to the beginning are supported"
-            );
-        }
-
-        $this->position = 0;
+        parent::seek($offset, $whence);
         $this->remainder = 0;
-        $this->seekEncoded(0);
     }
 
     /**
@@ -131,7 +78,7 @@ class Base64StreamDecorator implements StreamInterface
     private function readNextBase64()
     {
         $chart = $this->getBase64CharMap();
-        while (($r = $this->readEncoded(1)) !== '') {
+        while (($r = $this->readRaw(1)) !== '') {
             if (isset($chart[$r])) {
                 return $chart[$r];
             }
@@ -169,8 +116,11 @@ class Base64StreamDecorator implements StreamInterface
     }
 
     /**
+     * Reads the next binary byte by calculating it from the underlying base64
+     * stream, advances the read position ($this->position) and returns the
+     * byte.
      *
-     * @return type
+     * @return string
      */
     private function readNextByte()
     {
@@ -184,11 +134,22 @@ class Base64StreamDecorator implements StreamInterface
         return chr($byte);
     }
 
-    private function readAndFilterEncodedBlock($length)
+    /**
+     * Reads $length number of bytes from the underlying raw stream, filtering
+     * out invalid base64 bytes (e.g. newlines, or any byte not within the valid
+     * range).
+     *
+     * The method continues reading until $length number of bytes can be
+     * returned, or the end of the stream has been reached.
+     *
+     * @param int $length
+     * @return string
+     */
+    private function readAndFilterRawBlock($length)
     {
         $bytes = '';
         while (strlen($bytes) < $length) {
-            $read = $this->readEncoded($length - strlen($bytes));
+            $read = $this->readRaw($length - strlen($bytes));
             if ($read === '') {
                 return $bytes;
             }
@@ -197,6 +158,23 @@ class Base64StreamDecorator implements StreamInterface
         return $bytes;
     }
 
+    /**
+     * Reads the number of bytes denoted by $length into the passed $bytes
+     * string by calculating their values using $this->remainder, and keeping
+     * any additional remainders in $this->remainder.
+     *
+     * This method is called when $this->position is not 3-byte aligned and the
+     * next byte to be read needs to be calculated either at the beginning of a
+     * read operation or at the end.
+     *
+     * The method returns -1 if the end of the stream has been (even if bytes
+     * have been read and concatenated to the passed $bytes string).  Otherwise,
+     * the number of bytes and concatenated to $bytes read is returned.
+     *
+     * @param int $length
+     * @param string $bytes
+     * @return int
+     */
     private function readUnalignedBytesAndConcat($length, &$bytes)
     {
         for ($i = 0; $i < $length; ++$i) {
@@ -209,17 +187,40 @@ class Base64StreamDecorator implements StreamInterface
         return $i;
     }
 
+    /**
+     * Reads up to $length number of bytes when $this->position is 3-bytes
+     * aligned.  If $length is not 3-byte aligned, the last block will not be
+     * read -- passing a $length of less than 3 will result in 0 bytes being
+     * read.
+     *
+     * This method uses base64_decode which is much faster than the calculated
+     * implementation in this class.
+     *
+     * The method returns the number of bytes read.
+     *
+     * @param int $length
+     * @param string $bytes
+     * @return int
+     */
     private function readAlignedBytesAndConcat($length, &$bytes)
     {
-        $readEncoded = intval(($length * 4) / 3);
-        $readEncoded -= $readEncoded % 4;   // leave off partial blocks
-        $decoded = base64_decode($this->readAndFilterEncodedBlock($readEncoded));
+        $readRaw = intval(($length * 4) / 3);
+        $readRaw -= $readRaw % 4;   // leave off partial blocks
+        $decoded = base64_decode($this->readAndFilterRawBlock($readRaw));
         $length -= strlen($decoded);
         $this->position += strlen($decoded);
         $bytes .= $decoded;
         return $length;
     }
 
+    /**
+     * Determines how many bytes need to be read and calculated manually and
+     * calls $this->readUnalignedBytesAndConcat for them, and how many can be
+     * read without calculation using $this->readAlignedBytesAndConcat.
+     *
+     * @param int $length
+     * @return string
+     */
     private function readBytes($length)
     {
         $bytes = '';
@@ -237,17 +238,26 @@ class Base64StreamDecorator implements StreamInterface
     }
 
     /**
+     * Reads up to $length bytes and returns them.
      *
-     * @param type $length
-     * @return type
+     * @param int $length
+     * @return string
      */
     public function read($length)
     {
         // let Guzzle decide what to do.
         if ($length <= 0 || $this->eof()) {
-            return $this->readEncoded($length);
+            return $this->readRaw($length);
         }
-        $bytes = $this->readBytes($length);
-        return $bytes;
+        return $this->readBytes($length);
+    }
+
+    /**
+     *
+     * @param string $string
+     */
+    public function write($string)
+    {
+        // not implemented yet
     }
 }
