@@ -9,13 +9,12 @@ namespace ZBateson\MailMimeParser\Stream;
 /**
  * GuzzleHttp\Psr7 stream decoder extension for base64 streams.
  *
- * Seeking is supported only back to the beginning of the stream.
+ * Extends AbstractMimeTransferStreamDecorator, which prevents getSize and
+ * seeking to anywhere except the beginning (rewinding).
  *
- * Mixing read and write operations is not supported.  Either read to a stream,
- * or write, but not both.
- *
- * getSize will always return null, as the size isn't determinable without
- * reading the entire stream's contents.
+ * The size of the underlying stream and the position of bytes can't be
+ * determined because the amount of whitespace isn't defined, so only a read
+ * operation to the end of the stream could return the correct size.
  *
  * @author Zaahid Bateson
  */
@@ -28,11 +27,14 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     protected $remainder = 0;
 
     /**
-     * Overridden to seek to the correct un-encoded position in the underlying
-     * base64 encoded stream.
+     * Calls AbstractMimeTransferStreamDecorator::seek, which throws a
+     * RuntimeException if attempting to seek to a non-zero position.
+     *
+     * Overridden to reset the calculated remainder when rewinding the stream.
      *
      * @param int $offset
      * @param int $whence
+     * @throws RuntimeException
      */
     public function seek($offset, $whence = SEEK_SET)
     {

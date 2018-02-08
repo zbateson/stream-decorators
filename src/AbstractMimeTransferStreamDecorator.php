@@ -63,7 +63,7 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
 
     /**
      * Allows seeking to the beginning of the stream only (rewind), and
-     * otherwise throws a RuntimeException
+     * otherwise throws a RuntimeException.
      *
      * @param int $offset
      * @param int $whence
