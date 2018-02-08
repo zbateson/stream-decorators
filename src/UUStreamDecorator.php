@@ -11,33 +11,67 @@ namespace ZBateson\MailMimeParser\Stream;
  *
  * @author Zaahid Bateson
  */
-class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
+class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
 {
-    private function decodeBlock($block)
+    private $bufferLength = 0;
+    private $buffer = '';
+
+    public function seek($offset, $whence = SEEK_SET)
     {
-        if (substr($block, -1) === '=') {
-            $block .= $this->readRaw(2);
-        } elseif (substr($block, -2, 1) === '=') {
-            $block .= $this->readRaw(1);
-        }
-        return quoted_printable_decode($block);
+        parent::seek($offset, $whence);
+        // no exception thrown if reached here...
+        $this->bufferLength = 0;
+        $this->buffer = '';
     }
 
-    private function readRawAndDecode($length, &$bytes)
+    private function readToEndOfLine()
     {
-        $block = $this->readRaw($length);
-        if ($block === false || $block === '') {
-            return -1;
+        $str = '';
+        while (($chr = $this->readRaw(1)) !== '') {
+            $str .= $chr;
+            if ($chr === "\n") {
+                break;
+            }
         }
-        $decoded = $this->decodeBlock($block);
-        $count = strlen($decoded);
-        if ($count > $length) {
-            $this->seekRaw(-($count - $length), SEEK_CUR);
-            $bytes .= substr($decoded, 0, $length);
-            return $length;
+        return $str;
+    }
+
+    private function readRawBytesIntoBuffer()
+    {
+        $prep = $this->readRaw(2048);
+        $prep .= $this->readToEndOfLine();
+
+        $pattern = '/(^\s*end\s*$|^\s*begin[^\r\n]+\s*$)/im';
+        $prep = preg_replace($pattern, '', $prep);
+        $nRead = strlen($prep);
+        
+        if ($nRead === 0) {
+            $this->buffer = '';
+            $this->bufferLength = 0;
+            return;
         }
-        $bytes .= $decoded;
-        return $count;
+
+        $this->buffer = convert_uudecode(trim($prep));
+        $this->bufferLength = strlen($this->buffer);
+    }
+
+    private function getDecodedBytes($length)
+    {
+        $data = $this->buffer;
+        $retLen = $this->bufferLength;
+        while ($retLen < $length) {
+            $this->readRawBytesIntoBuffer();
+            if ($this->bufferLength === 0) {
+                break;
+            }
+            $retLen += $this->bufferLength;
+            $data .= $this->buffer;
+        }
+        $ret = substr($data, 0, $length);
+        $this->buffer = substr($data, $length);
+        $this->bufferLength = strlen($this->buffer);
+        $this->position += strlen($ret);
+        return $ret;
     }
 
     /**
@@ -48,20 +82,11 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
     public function read($length)
     {
         // let Guzzle decide what to do.
-        if ($length <= 0 || $this->eof()) {
+        if ($length <= 0 || ($this->eof() && $this->bufferLength === 0)) {
             return $this->readRaw($length);
         }
-        $count = 0;
-        $bytes = '';
-        while ($count < $length) {
-            $nRead = $this->readRawAndDecode($length - $count, $bytes);
-            if ($nRead === -1) {
-                break;
-            }
-            $this->position += $nRead;
-            $count += $nRead;
-        }
-        return $bytes;
+
+        return $this->getDecodedBytes($length);
     }
 
     public function write($string)

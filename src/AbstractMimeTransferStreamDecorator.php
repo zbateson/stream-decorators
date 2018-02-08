@@ -22,7 +22,7 @@ use RuntimeException;
  *  o Uses StreamDecoratorTrait, setting method visibility to protected and
  *    changing their names to getRawSize, seekRaw, tellRaw, writeRaw and readRaw
  *
- * @author Zaahid Bateson <zbateson@gmail.com>
+ * @author Zaahid Bateson
  */
 abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
 {
