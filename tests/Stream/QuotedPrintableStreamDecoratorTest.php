@@ -80,8 +80,8 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'vulgaire.';
         $encoded = "J'interdis aux marchands de vanter trop leur marchandises. Car ils se font =\r\n"
             . "vite p=C3=A9dagogues et t'enseignent comme but ce qui n'est par essence qu'=\r\n"
-            . "un moyen, et te trompant ainsi sur la route =C3=A0 suivre les voil=C3=A0 bi=\r\n"
-            . "ent=C3=B4t qui te d=C3=A9gradent, car si leur musique est vulgaire ils te f=\r\n"
+            . "un moyen, et te trompant ainsi sur la route =C3=A0 suivre les voil=C3=A0 bi=\r"
+            . "ent=C3=B4t qui te d=C3=A9gradent, car si leur musique est vulgaire ils te f=\n"
             . "abriquent pour te la vendre une =C3=A2me vulgaire.";
         $stream = Psr7\stream_for($encoded);
         $qpStream = new QuotedPrintableStreamDecorator($stream);
@@ -132,7 +132,7 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $qpStream->seek(10);
     }
 
-    public function testBad()
+    public function testBadlyEncodedStrings()
     {
         $encoded = "=";
         $stream = Psr7\stream_for($encoded);
@@ -142,7 +142,7 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $encoded = "= ";
         $stream = Psr7\stream_for($encoded);
         $qpStream = new QuotedPrintableStreamDecorator($stream);
-        $this->assertEquals('', $qpStream->getContents());
+        $this->assertEquals('= ', $qpStream->getContents());
 
         $encoded = "=asdf";
         $stream = Psr7\stream_for($encoded);
