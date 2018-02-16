@@ -1,5 +1,5 @@
 <?php
-namespace ZBateson\MailMimeParser\Stream;
+namespace ZBateson\StreamDecorators;
 
 use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7;
  *
  * @group Stream
  * @group QuotedPrintableStreamDecorator
- * @covers ZBateson\MailMimeParser\Stream\QuotedPrintableStreamDecorator
+ * @covers ZBateson\StreamDecorators\QuotedPrintableStreamDecorator
  * @author Zaahid Bateson
  */
 class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase

@@ -15,8 +15,8 @@
         </whitelist>
     </filter>
     <testsuites>
-        <testsuite name="Stream">
-            <directory suffix="Test.php">Stream</directory>
+        <testsuite name="StreamDecorators">
+            <directory suffix="Test.php">StreamDecorators</directory>
         </testsuite>
     </testsuites>
 </phpunit>

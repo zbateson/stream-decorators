@@ -1,10 +1,10 @@
 <?php
 /**
- * This file is part of the ZBateson\MailMimeParser project.
+ * This file is part of the ZBateson\StreamDecorators project.
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
-namespace ZBateson\MailMimeParser\Stream;
+namespace ZBateson\StreamDecorators;
 
 /**
  * 
