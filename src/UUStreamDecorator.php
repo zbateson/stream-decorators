@@ -54,16 +54,38 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      *
      * @return string
      */
-    private function readToEndOfLine()
+    private function readToEndOfLine($length)
     {
-        $str = '';
-        while (($chr = $this->readRaw(1)) !== '') {
-            $str .= $chr;
-            if ($chr === "\n") {
+        $str = $this->readRaw($length);
+        if ($str === false || $str === '') {
+            return '';
+        }
+        while (substr($str, -1) !== "\n") {
+            $chr = $this->readRaw(1);
+            if ($chr === false || $chr === '') {
                 break;
             }
+            $str .= $chr;
         }
         return $str;
+    }
+
+    /**
+     * Removes 'BEGIN' and 'END' line headers and footers from the passed string
+     * before returning it.
+     *
+     * @param string $str
+     * @return string
+     */
+    private function removeUUHeaderAndFooter($str)
+    {
+        $ret = $str;
+        if ($this->position === 0) {
+            $ret = preg_replace('/^\s*begin[^\r\n]+\s*$|^\s*end\s*$/im', '', $ret);
+        } else {
+            $ret = preg_replace('/^\s*end\s*$/im', '', $ret);
+        }
+        return $ret;
     }
 
     /**
@@ -72,20 +94,16 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function readRawBytesIntoBuffer()
     {
-        $prep = $this->readRaw(2048);
-        $prep .= $this->readToEndOfLine();
-
-        $pattern = '/(^\s*end\s*$|^\s*begin[^\r\n]+\s*$)/im';
-        $prep = preg_replace($pattern, '', $prep);
-        $nRead = strlen($prep);
-        
-        if ($nRead === 0) {
+        // 5040 = 63 * 80, seems to be good balance for buffering in benchmarks
+        // testing with a simple 'if ($length < x)' and calculating a better
+        // size reduces speeds by up to 4x
+        $encoded = trim($this->removeUUHeaderAndFooter($this->readToEndOfLine(5040)));
+        if ($encoded === '') {
             $this->buffer = '';
-            $this->bufferLength = 0;
-            return;
+        } else {
+            //var_dump($encoded);
+            $this->buffer = convert_uudecode($encoded);
         }
-
-        $this->buffer = convert_uudecode(trim($prep));
         $this->bufferLength = strlen($this->buffer);
     }
 
