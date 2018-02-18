@@ -7,7 +7,6 @@ use GuzzleHttp\Psr7;
 /**
  * Description of Base64StreamDecoratorTest
  *
- * @group Stream
  * @group Base64StreamDecorator
  * @covers ZBateson\StreamDecorators\Base64StreamDecorator
  * @author Zaahid Bateson

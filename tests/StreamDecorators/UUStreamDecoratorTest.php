@@ -7,7 +7,6 @@ use GuzzleHttp\Psr7;
 /**
  * Description of UUStreamDecoratorTest
  *
- * @group Stream
  * @group UUStreamDecorator
  * @covers ZBateson\StreamDecorators\UUStreamDecorator
  * @author Zaahid Bateson

@@ -7,7 +7,6 @@ use GuzzleHttp\Psr7;
 /**
  * Description of QuotedPrintableStreamDecoratorTest
  *
- * @group Stream
  * @group QuotedPrintableStreamDecorator
  * @covers ZBateson\StreamDecorators\QuotedPrintableStreamDecorator
  * @author Zaahid Bateson
