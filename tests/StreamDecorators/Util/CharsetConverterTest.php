@@ -6,7 +6,6 @@ use PHPUnit_Framework_TestCase;
 /**
  * Description of CharsetConverterTest
  *
- * @group Stream
  * @group CharsetConverter
  * @covers ZBateson\StreamDecorators\Util\CharsetConverter
  * @author Zaahid Bateson
@@ -70,6 +69,90 @@ class CharsetConverterTest extends PHPUnit_Framework_TestCase
         $converter = new CharsetConverter();
         foreach ($arr as $dest) {
             $this->assertEquals($test, $converter->convert($converter->convert($test, 'UTF-8', $dest), $dest, 'UTF-8'), "Testing with $dest");
+        }
+    }
+
+    public function testMbStrlen()
+    {
+        $arr = array_unique(CharsetConverter::$mbAliases);
+        $converter = new CharsetConverter();
+        $str = 'هلا والله بالغالي';
+        $len = mb_strlen($str, 'UTF-8');
+        $first = reset($arr);
+        $test = $converter->convert($str, 'UTF-8', $first);
+        foreach ($arr as $dest) {
+            $this->assertEquals($len, $converter->getLength($converter->convert($test, $first, $dest), $dest));
+        }
+    }
+
+    public function testIconvStrlen()
+    {
+        $arr = array_unique(CharsetConverter::$iconvAliases);
+        $converter = new CharsetConverter();
+        $str = 'هلا والله بالغالي';
+        $len = mb_strlen($str, 'UTF-8');
+        $first = reset($arr);
+        $test = $converter->convert($str, 'UTF-8', $first);
+        foreach ($arr as $dest) {
+            $this->assertEquals($len, $converter->getLength($converter->convert($test, $first, $dest), $dest));
+        }
+    }
+
+    public function testMbSubstr()
+    {
+        $arr = array_unique(CharsetConverter::$mbAliases);
+        $converter = new CharsetConverter();
+        $str = 'Needs to be simple';
+        $len = mb_strlen($str, 'UTF-8');
+        $first = reset($arr);
+        $test = $converter->convert($str, 'UTF-8', $first);
+        foreach ($arr as $dest) {
+            $testConv = $converter->convert($test, $first, $dest);
+            for ($i = 0; $i < $len; ++$i) {
+                for ($j = $i + 1; $j <= $len; ++$j) {
+                    $this->assertEquals(
+                        mb_substr($str, $i, $j),
+                        $converter->convert($converter->getSubstr($testConv, $dest, $i, $j), $dest, 'UTF-8'),
+                        "Failed on $i iteration $j with " . $converter->convert($testConv, $dest, 'UTF-8')
+                    );
+                }
+                $this->assertEquals(
+                    mb_substr($str, $i),
+                    $converter->convert($converter->getSubstr($testConv, $dest, $i), $dest, 'UTF-8')
+                );
+            }
+
+        }
+    }
+
+    public function testIconvSubstr()
+    {
+        $arr = array_unique(CharsetConverter::$iconvAliases);
+        $converter = new CharsetConverter();
+        $str = 'Needs to be simple';
+        $len = mb_strlen($str, 'UTF-8');
+        $first = reset($arr);
+        $test = $converter->convert($str, 'UTF-8', $first);
+
+        // seems to fail only on CP1258, returns incorrect number of characters with iconv_substr
+        $arr = array_diff($arr, ['CP1258']);
+
+        foreach ($arr as $dest) {
+            $testConv = $converter->convert($test, $first, $dest);
+            for ($i = 0; $i < $len; ++$i) {
+                for ($j = $i + 1; $j <= $len; ++$j) {
+                    $this->assertEquals(
+                        mb_substr($str, $i, $j),
+                        $converter->convert($converter->getSubstr($testConv, $dest, $i, $j), $dest, 'UTF-8'),
+                        "Failed on $i iteration $j with " . $converter->convert($testConv, $dest, 'UTF-8')
+                    );
+                }
+                $this->assertEquals(
+                    mb_substr($str, $i),
+                    $converter->convert($converter->getSubstr($testConv, $dest, $i), $dest, 'UTF-8')
+                );
+            }
+
         }
     }
 }

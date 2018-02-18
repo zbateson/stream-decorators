@@ -320,10 +320,12 @@ class CharsetConverter
     }
 
     /**
+     * Uses either mb_strlen or iconv_strlen to return the number of characters
+     * in the passed $str for the given $charset
      *
-     * @param type $str
-     * @param type $charset
-     * @return type
+     * @param string $str
+     * @param string $charset
+     * @return int
      */
     public function getLength($str, $charset)
     {
@@ -336,11 +338,14 @@ class CharsetConverter
     }
 
     /**
+     * Uses either mb_substr or iconv_substr to create and return a substring of
+     * the passed $str.
      *
-     * @param type $str
+     * @param string $str
      * @param string $charset
-     * @param type $start
-     * @param type $length
+     * @param int $start
+     * @param int $length
+     * @return string
      */
     public function getSubstr($str, $charset, $start, $length = null)
     {
@@ -354,7 +359,14 @@ class CharsetConverter
         }
         return iconv_substr($str, $start, $length, $cs);
     }
-    
+
+    /**
+     * Looks up a charset, checking if the lookup has been cached already first.
+     *
+     * @param string $cs
+     * @param bool $mbSupported
+     * @return string
+     */
     private function getRealCharset($cs, &$mbSupported)
     {
         $csu = strtoupper($cs);
