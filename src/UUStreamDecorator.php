@@ -7,15 +7,39 @@
 namespace ZBateson\StreamDecorators;
 
 /**
- * 
+ * GuzzleHttp\Psr7 stream decoder extension for UU-Encoded streams.
+ *
+ * Extends AbstractMimeTransferStreamDecorator, which prevents getSize and
+ * seeking to anywhere except the beginning (rewinding).
+ *
+ * The size of the underlying stream and the position of bytes can't be
+ * determined because the number of encoded bytes is indeterminate without
+ * reading the entire stream.
  *
  * @author Zaahid Bateson
  */
 class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
 {
-    private $bufferLength = 0;
+    /**
+     * @var string string of buffered bytes
+     */
     private $buffer = '';
 
+    /**
+     * @var int number of bytes in $buffer
+     */
+    private $bufferLength = 0;
+
+    /**
+     * Calls AbstractMimeTransferStreamDecorator::seek, which throws a
+     * RuntimeException if attempting to seek to a non-zero position.
+     *
+     * Overridden to reset buffers.
+     *
+     * @param int $offset
+     * @param int $whence
+     * @throws RuntimeException
+     */
     public function seek($offset, $whence = SEEK_SET)
     {
         parent::seek($offset, $whence);
@@ -24,6 +48,12 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         $this->buffer = '';
     }
 
+    /**
+     * Finds the next end-of-line character to ensure a line isn't broken up
+     * while buffering.
+     *
+     * @return string
+     */
     private function readToEndOfLine()
     {
         $str = '';
@@ -36,6 +66,10 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         return $str;
     }
 
+    /**
+     * Buffers bytes into $this->buffer, removing uuencoding headers and footers
+     * and decoding them.
+     */
     private function readRawBytesIntoBuffer()
     {
         $prep = $this->readRaw(2048);
@@ -55,12 +89,19 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         $this->bufferLength = strlen($this->buffer);
     }
 
+    /**
+     * Attempts to fill up to $length bytes of decoded bytes into $this->buffer,
+     * and returns them.
+     *
+     * @param int $length
+     * @return string
+     */
     private function getDecodedBytes($length)
     {
         $data = $this->buffer;
         $retLen = $this->bufferLength;
         while ($retLen < $length) {
-            $this->readRawBytesIntoBuffer();
+            $this->readRawBytesIntoBuffer($length);
             if ($this->bufferLength === 0) {
                 break;
             }
@@ -75,17 +116,27 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
+     * Returns true if the end of stream has been reached.
      *
-     * @param type $length
      * @return type
+     */
+    public function eof()
+    {
+        return ($this->bufferLength === 0 && parent::eof());
+    }
+
+    /**
+     * Attempts to read $length bytes after decoding them, and returns them.
+     *
+     * @param int $length
+     * @return string
      */
     public function read($length)
     {
         // let Guzzle decide what to do.
-        if ($length <= 0 || ($this->eof() && $this->bufferLength === 0)) {
+        if ($length <= 0 || $this->eof()) {
             return $this->readRaw($length);
         }
-
         return $this->getDecodedBytes($length);
     }
 
