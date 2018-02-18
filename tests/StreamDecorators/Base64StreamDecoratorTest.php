@@ -15,12 +15,12 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
 {
     public function testReadAndRewind()
     {
-        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+        $str = str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
             . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é';
+            . 'vulgaire.é', 30);
         $stream = Psr7\stream_for(base64_encode($str));
         $b64Stream = new Base64StreamDecorator($stream);
 
