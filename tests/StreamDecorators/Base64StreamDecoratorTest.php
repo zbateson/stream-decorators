@@ -3,6 +3,7 @@ namespace ZBateson\StreamDecorators;
 
 use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\StreamWrapper;
 
 /**
  * Description of Base64StreamDecoratorTest
@@ -114,5 +115,20 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
         $stream = Psr7\stream_for(base64_encode('test'));
         $b64Stream = new Base64StreamDecorator($stream);
         $b64Stream->seek(10);
+    }
+
+    public function testDecodeFile()
+    {
+        $encoded = './tests/_data/blueball.b64.txt';
+        $org = './tests/_data/blueball.png';
+        $f = fopen($encoded, 'r');
+        
+        $streamDecorator = new Base64StreamDecorator(Psr7\stream_for($f));
+        $handle = StreamWrapper::getResource($streamDecorator);
+
+        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
+
+        fclose($handle);
+        fclose($f);
     }
 }
