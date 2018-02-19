@@ -79,7 +79,8 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function filterEncodedString($str)
     {
-        $ret = preg_replace('/[^\x20-\xf5`\n]+/', '', $str);
+        $ret = str_replace("\r", '', $str);
+        $ret = preg_replace('/[^\x21-\xf5`\n]/', '`', $ret);
         if ($this->position === 0) {
             $ret = preg_replace('/^\s*begin[^\r\n]+\s*$|^\s*end\s*$/im', '', $ret);
         } else {
