@@ -30,13 +30,13 @@ class CharsetStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $stream = Psr7\stream_for($this->converter->convert($str, 'UTF-8', 'UTF-32'));
         $qpStream = new CharsetStreamDecorator($stream, 'UTF-32', 'UTF-8');
 
-        for ($i = 1; $i < mb_strlen($str); ++$i) {
+        for ($i = 1; $i < mb_strlen($str, 'UTF-8'); ++$i) {
             $qpStream->rewind();
-            for ($j = 0; $j < mb_strlen($str); $j += $i) {
+            for ($j = 0; $j < mb_strlen($str, 'UTF-8'); $j += $i) {
                 $char = $qpStream->read($i);
-                $this->assertEquals(mb_substr($str, $j, $i), $char, "Read $j failed at $i step");
+                $this->assertEquals(mb_substr($str, $j, $i, 'UTF-8'), $char, "Read $j failed at $i step");
             }
-            $this->assertEquals(mb_strlen($str), $qpStream->tell(), "Final tell failed with $i step");
+            $this->assertEquals(mb_strlen($str, 'UTF-8'), $qpStream->tell(), "Final tell failed with $i step");
         }
     }
 
