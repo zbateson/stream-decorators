@@ -3,6 +3,7 @@ namespace ZBateson\StreamDecorators;
 
 use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\StreamWrapper;
 
 /**
  * Description of QuotedPrintableStreamDecoratorTest
@@ -151,5 +152,20 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('s', $qpStream->read(1));
         $this->assertEquals('d', $qpStream->read(1));
         $this->assertEquals('f', $qpStream->read(1));
+    }
+
+    public function testDecodeFile()
+    {
+        $encoded = './tests/_data/blueball.qp.txt';
+        $org = './tests/_data/blueball.png';
+        $f = fopen($encoded, 'r');
+
+        $streamDecorator = new QuotedPrintableStreamDecorator(Psr7\stream_for($f));
+        $handle = StreamWrapper::getResource($streamDecorator);
+
+        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
+
+        fclose($handle);
+        fclose($f);
     }
 }
