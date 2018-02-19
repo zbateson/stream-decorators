@@ -139,17 +139,16 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
         $str = str_repeat($str, 30);
-        //for ($i = 0; $i < strlen($str); ++$i) {
+        for ($i = 0; $i < strlen($str); ++$i) {
             
-            $substr = $str; //substr($str, 0, $i + 1);
+            $substr = substr($str, 0, $i + 1);
             $encoded = convert_uuencode($substr);
             $encoded = "begin 666 devil.txt\r\n\r\n" . $encoded . "\r\nend\r\n";
-            file_put_contents('./tests/_data/output_test.txt', $encoded);
-
+            
             $stream = Psr7\stream_for($encoded);
             $uuStream = new UUStreamDecorator($stream);
             $this->assertEquals($substr, $uuStream->getContents());
-        //}
+        }
     }
 
     public function testDecodeFile()
