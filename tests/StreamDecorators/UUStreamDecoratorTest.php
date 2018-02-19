@@ -3,6 +3,7 @@ namespace ZBateson\StreamDecorators;
 
 use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\StreamWrapper;
 
 /**
  * Description of UUStreamDecoratorTest
@@ -33,7 +34,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testReadWithUnixLines()
+    public function testReadWithCrLf()
     {
         $str = str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
             . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
@@ -41,7 +42,8 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é', 30);
-        $stream = Psr7\stream_for(str_replace("\r\n", "\n", convert_uuencode($str)));
+        $encoded = preg_replace('/([^\r]?)\n/', "$1\r\n", convert_uuencode($str));
+        $stream = Psr7\stream_for($encoded);
         $uuStream = new UUStreamDecorator($stream);
 
         for ($i = 1; $i < strlen($str); ++$i) {
@@ -137,15 +139,31 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
         $str = str_repeat($str, 30);
-        for ($i = 0; $i < strlen($str); ++$i) {
+        //for ($i = 0; $i < strlen($str); ++$i) {
             
-            $substr = substr($str, 0, $i + 1);
+            $substr = $str; //substr($str, 0, $i + 1);
             $encoded = convert_uuencode($substr);
             $encoded = "begin 666 devil.txt\r\n\r\n" . $encoded . "\r\nend\r\n";
+            file_put_contents('./tests/_data/output_test.txt', $encoded);
 
             $stream = Psr7\stream_for($encoded);
             $uuStream = new UUStreamDecorator($stream);
             $this->assertEquals($substr, $uuStream->getContents());
-        }
+        //}
+    }
+
+    public function testDecodeFile()
+    {
+        $encoded = './tests/_data/blueball.uu.txt';
+        $org = './tests/_data/blueball.png';
+        $f = fopen($encoded, 'r');
+
+        $streamDecorator = new UUStreamDecorator(Psr7\stream_for($f));
+        $handle = StreamWrapper::getResource($streamDecorator);
+
+        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
+
+        fclose($handle);
+        fclose($f);
     }
 }

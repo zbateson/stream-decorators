@@ -71,21 +71,21 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Removes 'BEGIN' and 'END' line headers and footers from the passed string
-     * before returning it.
+     * Removes invalid characters from a uuencoded string, and 'BEGIN' and 'END'
+     * line headers and footers from the passed string before returning it.
      *
      * @param string $str
      * @return string
      */
-    private function removeUUHeaderAndFooter($str)
+    private function filterEncodedString($str)
     {
-        $ret = $str;
+        $ret = preg_replace('/[^\x20-\xf5`\n]+/', '', $str);
         if ($this->position === 0) {
             $ret = preg_replace('/^\s*begin[^\r\n]+\s*$|^\s*end\s*$/im', '', $ret);
         } else {
             $ret = preg_replace('/^\s*end\s*$/im', '', $ret);
         }
-        return $ret;
+        return trim($ret);
     }
 
     /**
@@ -97,7 +97,7 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         // 5040 = 63 * 80, seems to be good balance for buffering in benchmarks
         // testing with a simple 'if ($length < x)' and calculating a better
         // size reduces speeds by up to 4x
-        $encoded = trim($this->removeUUHeaderAndFooter($this->readToEndOfLine(5040)));
+        $encoded = $this->filterEncodedString($this->readToEndOfLine(5040));
         if ($encoded === '') {
             $this->buffer = '';
         } else {
