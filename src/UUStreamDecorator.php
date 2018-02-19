@@ -159,6 +159,11 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         return $this->getDecodedBytes($length);
     }
 
+    /**
+     *
+     * @param string $string
+     * @codeCoverageIgnore
+     */
     public function write($string)
     {
         // not implemented yet

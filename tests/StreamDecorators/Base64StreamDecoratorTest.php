@@ -9,6 +9,7 @@ use GuzzleHttp\Psr7\StreamWrapper;
  * Description of Base64StreamDecoratorTest
  *
  * @group Base64StreamDecorator
+ * @covers ZBateson\StreamDecorators\AbstractMimeTransferStreamDecorator
  * @covers ZBateson\StreamDecorators\Base64StreamDecorator
  * @author Zaahid Bateson
  */
@@ -21,7 +22,7 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é', 30);
+            . 'vulgaire.é', 10);
         $stream = Psr7\stream_for(base64_encode($str));
         $b64Stream = new Base64StreamDecorator($stream);
 
@@ -107,6 +108,14 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
             }
             $this->assertEquals(strlen($str), $b64Stream->tell(), "Final tell failed with $i step");
         }
+    }
+
+    public function testSeekCur()
+    {
+        $stream = Psr7\stream_for(base64_encode('test'));
+        $b64Stream = new Base64StreamDecorator($stream);
+        $this->assertEquals('te', $b64Stream->read(2));
+        $b64Stream->seek(-2, SEEK_CUR);
     }
 
     public function testSeek()

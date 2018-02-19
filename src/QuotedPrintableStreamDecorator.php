@@ -118,6 +118,11 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
         return $bytes;
     }
 
+    /**
+     *
+     * @param string $string
+     * @codeCoverageIgnore
+     */
     public function write($string)
     {
         // not implemented yet

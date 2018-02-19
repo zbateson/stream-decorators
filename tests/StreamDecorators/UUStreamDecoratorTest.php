@@ -9,6 +9,7 @@ use GuzzleHttp\Psr7\StreamWrapper;
  * Description of UUStreamDecoratorTest
  *
  * @group UUStreamDecorator
+ * @covers ZBateson\StreamDecorators\AbstractMimeTransferStreamDecorator
  * @covers ZBateson\StreamDecorators\UUStreamDecorator
  * @author Zaahid Bateson
  */
@@ -21,7 +22,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é', 30);
+            . 'vulgaire.é', 10);
         $stream = Psr7\stream_for(convert_uuencode($str));
         $uuStream = new UUStreamDecorator($stream);
 
@@ -41,7 +42,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é', 30);
+            . 'vulgaire.é', 10);
         $encoded = preg_replace('/([^\r]?)\n/', "$1\r\n", convert_uuencode($str));
         $stream = Psr7\stream_for($encoded);
         $uuStream = new UUStreamDecorator($stream);
@@ -138,7 +139,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
-        $str = str_repeat($str, 30);
+        $str = str_repeat($str, 10);
         for ($i = 0; $i < strlen($str); ++$i) {
             
             $substr = substr($str, 0, $i + 1);

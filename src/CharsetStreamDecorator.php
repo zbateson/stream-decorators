@@ -134,6 +134,11 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
         return $this->converter->convert($chars, $this->fromCharset, $this->toCharset);
     }
 
+    /**
+     *
+     * @param string $string
+     * @codeCoverageIgnore
+     */
     public function write($string)
     {
         // not implemented yet

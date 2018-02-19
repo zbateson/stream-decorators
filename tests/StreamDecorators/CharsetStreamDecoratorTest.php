@@ -9,6 +9,7 @@ use ZBateson\StreamDecorators\Util\CharsetConverter;
  * Description of CharsetStreamDecoratorTest
  *
  * @group CharsetStreamDecorator
+ * @covers ZBateson\StreamDecorators\AbstractMimeTransferStreamDecorator
  * @covers ZBateson\StreamDecorators\CharsetStreamDecorator
  * @author Zaahid Bateson
  */
@@ -24,7 +25,7 @@ class CharsetStreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testReadAndRewind()
     {
-        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 100);
+        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 50);
 
         $stream = Psr7\stream_for($this->converter->convert($str, 'UTF-8', 'UTF-32'));
         $qpStream = new CharsetStreamDecorator($stream, 'UTF-32', 'UTF-8');
@@ -41,7 +42,7 @@ class CharsetStreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testReadContents()
     {
-        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 100);
+        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 50);
 
         for ($i = 0; $i < mb_strlen($str); ++$i) {
             $substr = mb_substr($str, 0, $i + 1, 'UTF-8');
@@ -62,6 +63,17 @@ class CharsetStreamDecoratorTest extends PHPUnit_Framework_TestCase
                 $read = $qpStream->read(1);
                 $this->assertEquals(mb_substr($substr, $j, 1, 'UTF-8'), $read, "Failed reading to EOF on substr $i iteration $j");
             }
+        }
+    }
+
+    public function testReadToEmpty()
+    {
+        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
+        $stream = Psr7\stream_for($this->converter->convert($str, 'UTF-8', 'WINDOWS-1256'));
+        $qpStream = new CharsetStreamDecorator($stream, 'WINDOWS-1256', 'UTF-8');
+        $i = 0;
+        while (($chr = $qpStream->read(1)) !== '') {
+            $this->assertEquals(mb_substr($str, $i++, 1, 'UTF-8'), $chr, "Failed reading to false on substr $i");
         }
     }
 

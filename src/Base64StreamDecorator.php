@@ -257,6 +257,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     /**
      *
      * @param string $string
+     * @codeCoverageIgnore
      */
     public function write($string)
     {

@@ -33,6 +33,20 @@ class CharsetConverterTest extends PHPUnit_Framework_TestCase
             $this->assertEquals($test, $converter->convert($converter->convert($test, $first, $dest), $dest, $first));
         }
     }
+
+    public function testMbConversionWithEmptyString()
+    {
+        $converter = new CharsetConverter();
+        $cs = reset(CharsetConverter::$mbAliases);
+        $this->assertEmpty($converter->convert('', 'UTF-8', $cs));
+    }
+
+    public function testIconvConversionWithEmptyString()
+    {
+        $converter = new CharsetConverter();
+        $cs = reset(CharsetConverter::$iconvAliases);
+        $this->assertEmpty($converter->convert('', 'UTF-8', $cs));
+    }
     
     public function testMbIconvMixedCharsetConversion()
     {
@@ -64,6 +78,9 @@ class CharsetConverterTest extends PHPUnit_Framework_TestCase
             'ISO_IR_157',
             'CS-ISO-LATIN-4',
             'ISO_IR_100',
+            'WINDOWS-&#&#1254',
+            'UTF-#@*(@8',
+            'ISO-&@(#IR166'
         ];
         $test = 'This is my string';
         $converter = new CharsetConverter();

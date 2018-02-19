@@ -9,6 +9,7 @@ use GuzzleHttp\Psr7\StreamWrapper;
  * Description of QuotedPrintableStreamDecoratorTest
  *
  * @group QuotedPrintableStreamDecorator
+ * @covers ZBateson\StreamDecorators\AbstractMimeTransferStreamDecorator
  * @covers ZBateson\StreamDecorators\QuotedPrintableStreamDecorator
  * @author Zaahid Bateson
  */
@@ -23,7 +24,7 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é', 30);
+            . 'vulgaire.é', 10);
         $stream = Psr7\stream_for(quoted_printable_encode($str));
         $qpStream = new QuotedPrintableStreamDecorator($stream);
 
