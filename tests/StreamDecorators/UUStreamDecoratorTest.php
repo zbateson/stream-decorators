@@ -97,9 +97,13 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
+
         $stream = Psr7\stream_for(convert_uuencode($str));
         $uuStream = new UUStreamDecorator($stream);
-        $this->assertNull($uuStream->getSize());
+        for ($i = 0; $i < strlen($str); ++$i) {
+            $this->assertEquals(strlen($str), $uuStream->getSize());
+            $this->assertEquals(substr($str, $i, 1), $uuStream->read(1), "Failed reading to EOF on substr $i");
+        }
     }
 
     public function testTell()
@@ -123,12 +127,25 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testSeek()
+    public function testSeekCur()
     {
-        $this->setExpectedException('RuntimeException');
         $stream = Psr7\stream_for(convert_uuencode('test'));
         $uuStream = new UUStreamDecorator($stream);
-        $uuStream->seek(10);
+        $this->assertEquals('te', $uuStream->read(2));
+        $uuStream->seek(-2, SEEK_CUR);
+        $this->assertEquals('te', $uuStream->read(2));
+        $uuStream->seek(1, SEEK_CUR);
+        $this->assertEquals('t', $uuStream->read(1));
+    }
+
+    public function testSeek()
+    {
+        $stream = Psr7\stream_for(convert_uuencode('0123456789'));
+        $uuStream = new UUStreamDecorator($stream);
+        $uuStream->seek(4);
+        $this->assertEquals('4', $uuStream->read(1));
+        $uuStream->seek(-1, SEEK_END);
+        $this->assertEquals('9', $uuStream->read(1));
     }
 
     public function testReadWithBeginAndEnd()

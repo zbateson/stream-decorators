@@ -27,18 +27,9 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     protected $remainder = 0;
 
     /**
-     * Calls AbstractMimeTransferStreamDecorator::seek, which throws a
-     * RuntimeException if attempting to seek to a non-zero position.
-     *
-     * Overridden to reset the calculated remainder when rewinding the stream.
-     *
-     * @param int $offset
-     * @param int $whence
-     * @throws RuntimeException
+     * Resets the internal remainder.
      */
-    public function seek($offset, $whence = SEEK_SET)
-    {
-        parent::seek($offset, $whence);
+    protected function beforeSeek() {
         $this->remainder = 0;
     }
 

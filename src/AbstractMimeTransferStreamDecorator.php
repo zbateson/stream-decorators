@@ -40,14 +40,35 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     protected $position = 0;
 
     /**
-     * Not determinable without reading the contents of the stream to filter out
-     * invalid bytes, new lines, header/footer data, etc...
+     * To determine the size of the underlying stream, the entire contents are
+     * read and discarded.  Therefore calling getSize is an expensive operation.
      *
-     * @return null
+     * @return int
      */
     public function getSize()
     {
-        return null;
+        return $this->getSizeWithSeekBack(true);
+    }
+
+    /**
+     * Can optionally seek back to the current position.
+     *
+     * Useful when called from seek with SEEK_END, there's no need to seek back
+     * to the current position when called within seek.
+     *
+     * @param type $seekBack
+     */
+    private function getSizeWithSeekBack($seekBack) {
+        $pos = $this->position;
+        $this->rewind();
+        while (!$this->eof()) {
+            $this->read(1048576);
+        }
+        $length = $this->position;
+        if ($seekBack) {
+            $this->seek($pos);
+        }
+        return $length;
     }
 
     /**
@@ -62,27 +83,37 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     }
 
     /**
-     * Allows seeking to the beginning of the stream only (rewind), and
-     * otherwise throws a RuntimeException.
+     * Called before seeking to the specified offset, can be overridden by
+     * sub-classes to reset internal buffers, etc...
+     */
+    protected function beforeSeek() {
+        // do nothing.
+    }
+
+    /**
+     * Seeks to the given position.
+     *
+     * This operation basically reads and discards to the given position because
+     * the size of the underlying stream can't be calculated otherwise, and is
+     * an expensive operation.
      *
      * @param int $offset
      * @param int $whence
-     * @throws RuntimeException
      */
     public function seek($offset, $whence = SEEK_SET)
     {
         $pos = $offset;
         if ($whence === SEEK_CUR) {
             $pos = $this->tell() + $offset;
+        } elseif ($whence === SEEK_END) {
+            $pos = $this->getSizeWithSeekBack(false) + $offset;
         }
-        if ($pos !== 0 || $whence === SEEK_END) {
-            throw new RuntimeException(
-                "Only rewinding or seeking to the beginning are supported"
-            );
+        if ($this->position !== $pos) {
+            $this->beforeSeek($pos);
+            $this->seekRaw(0);
+            $this->position = 0;
+            $this->read($pos);
         }
-        
-        $this->position = 0;
-        $this->seekRaw(0);
     }
 
     /**
@@ -98,6 +129,7 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
      * underlying stream
      *
      * @param int $length
+     * @return string the string that was read
      */
     public abstract function read($length);
 }

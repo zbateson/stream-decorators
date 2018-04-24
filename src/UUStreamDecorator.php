@@ -31,21 +31,12 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     private $bufferLength = 0;
 
     /**
-     * Calls AbstractMimeTransferStreamDecorator::seek, which throws a
-     * RuntimeException if attempting to seek to a non-zero position.
-     *
-     * Overridden to reset buffers.
-     *
-     * @param int $offset
-     * @param int $whence
-     * @throws RuntimeException
+     * Resets the internal buffers.
      */
-    public function seek($offset, $whence = SEEK_SET)
-    {
-        parent::seek($offset, $whence);
-        // no exception thrown if reached here...
+    protected function beforeSeek() {
         $this->bufferLength = 0;
         $this->buffer = '';
+
     }
 
     /**
@@ -102,7 +93,6 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         if ($encoded === '') {
             $this->buffer = '';
         } else {
-            //var_dump($encoded);
             $this->buffer = convert_uudecode($encoded);
         }
         $this->bufferLength = strlen($this->buffer);

@@ -86,7 +86,10 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'vulgaire.é';
         $stream = Psr7\stream_for(base64_encode($str));
         $b64Stream = new Base64StreamDecorator($stream);
-        $this->assertNull($b64Stream->getSize());
+        for ($i = 0; $i < strlen($str); ++$i) {
+            $this->assertEquals(strlen($str), $b64Stream->getSize());
+            $this->assertEquals(substr($str, $i, 1), $b64Stream->read(1), "Failed reading to EOF on substr $i");
+        }
     }
 
     public function testTell()
@@ -116,14 +119,19 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
         $b64Stream = new Base64StreamDecorator($stream);
         $this->assertEquals('te', $b64Stream->read(2));
         $b64Stream->seek(-2, SEEK_CUR);
+        $this->assertEquals('te', $b64Stream->read(2));
+        $b64Stream->seek(1, SEEK_CUR);
+        $this->assertEquals('t', $b64Stream->read(1));
     }
 
     public function testSeek()
     {
-        $this->setExpectedException('RuntimeException');
-        $stream = Psr7\stream_for(base64_encode('test'));
+        $stream = Psr7\stream_for(base64_encode('0123456789'));
         $b64Stream = new Base64StreamDecorator($stream);
-        $b64Stream->seek(10);
+        $b64Stream->seek(4);
+        $this->assertEquals('4', $b64Stream->read(1));
+        $b64Stream->seek(-1, SEEK_END);
+        $this->assertEquals('9', $b64Stream->read(1));
     }
 
     public function testDecodeFile()

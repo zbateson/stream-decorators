@@ -97,11 +97,19 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testGetSize()
     {
-        $str = 'Wubalubadubduuuuuuuuuuuuuuuuuuuuuuuuuuuuub!';
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
 
         $stream = Psr7\stream_for(quoted_printable_encode($str));
         $qpStream = new QuotedPrintableStreamDecorator($stream);
-        $this->assertNull($qpStream->getSize());
+        for ($i = 0; $i < strlen($str); ++$i) {
+            $this->assertEquals(strlen($str), $qpStream->getSize());
+            $this->assertEquals(substr($str, $i, 1), $qpStream->read(1), "Failed reading to EOF on substr $i");
+        }
     }
 
     public function testTell()
@@ -125,12 +133,25 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    public function testSeekCur()
+    {
+        $stream = Psr7\stream_for(quoted_printable_encode('test'));
+        $qpStream = new QuotedPrintableStreamDecorator($stream);
+        $this->assertEquals('te', $qpStream->read(2));
+        $qpStream->seek(-2, SEEK_CUR);
+        $this->assertEquals('te', $qpStream->read(2));
+        $qpStream->seek(1, SEEK_CUR);
+        $this->assertEquals('t', $qpStream->read(1));
+    }
+
     public function testSeek()
     {
-        $this->setExpectedException('RuntimeException');
-        $stream = Psr7\stream_for(quoted_printable_encode('test'));
-        $qpStream = new Base64StreamDecorator($stream);
-        $qpStream->seek(10);
+        $stream = Psr7\stream_for(quoted_printable_encode('0123456789'));
+        $qpStream = new QuotedPrintableStreamDecorator($stream);
+        $qpStream->seek(4);
+        $this->assertEquals('4', $qpStream->read(1));
+        $qpStream->seek(-1, SEEK_END);
+        $this->assertEquals('9', $qpStream->read(1));
     }
 
     public function testBadlyEncodedStrings()
