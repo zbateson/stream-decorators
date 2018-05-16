@@ -8,7 +8,6 @@ namespace ZBateson\StreamDecorators;
 
 use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use RuntimeException;
 
 /**
  * A default abstract implementation of GuzzleHttp\Psr7 StreamInterface for MIME
@@ -108,12 +107,15 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
         } elseif ($whence === SEEK_END) {
             $pos = $this->getSizeWithSeekBack(false) + $offset;
         }
-        if ($this->position !== $pos) {
-            $this->beforeSeek($pos);
-            $this->seekRaw(0);
-            $this->position = 0;
-            $this->read($pos);
-        }
+        // $this->position may not report actual position, for instance if the
+        // underlying stream has been moved ahead.  Checking if the requested
+        // position is the same as $pos before moving can cause problems when
+        // using a LimitStream for instance after the parent stream has been
+        // read from, etc...
+        $this->beforeSeek($pos);
+        $this->seekRaw(0);
+        $this->position = 0;
+        $this->read($pos);
     }
 
     /**

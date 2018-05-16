@@ -4,6 +4,7 @@ namespace ZBateson\StreamDecorators;
 use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
+use GuzzleHttp\Psr7\LimitStream;
 
 /**
  * Description of QuotedPrintableStreamDecoratorTest
@@ -51,6 +52,24 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             $qpStream = new QuotedPrintableStreamDecorator($stream);
             $this->assertEquals($substr, $qpStream->getContents());
         }
+    }
+
+    public function testRewindAndReadFromLimitStreamHandle()
+    {
+        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
+
+        $stream = Psr7\stream_for(quoted_printable_encode($str));
+        $limitStream = new LimitStream($stream);
+        $qpStream = new QuotedPrintableStreamDecorator($limitStream);
+
+        $limitStream->getContents();
+        $qpStream->rewind();
+        $this->assertEquals($str, $qpStream->getContents());
     }
 
     public function testReadToEof()
