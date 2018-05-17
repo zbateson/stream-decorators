@@ -148,4 +148,32 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
         fclose($handle);
         fclose($f);
     }
+
+    public function testWrite()
+    {
+        $org = './tests/_data/blueball.png';
+        $contents = file_get_contents($org);
+
+        for ($i = 1; $i < strlen($contents); ++$i) {
+            $f = fopen('php://temp', 'r+');
+            $streamDecorator = new Base64StreamDecorator(Psr7\stream_for($f));
+            for ($j = 0; $j < strlen($contents); $j += $i) {
+                $streamDecorator->write(substr($contents, $j, $i));
+            }
+            $streamDecorator->rewind();
+            $this->assertEquals($contents, $streamDecorator->getContents());
+            rewind($f);
+            $raw = stream_get_contents($f);
+            $arr = explode("\r\n", $raw);
+            $this->assertGreaterThan(0, count($arr));
+            for ($x = 0; $x < count($arr); ++$x) {
+                if ($x < count($arr) - 1) {
+                    $this->assertEquals(76, strlen($arr[$x]));
+                } else {
+                    $this->assertLessThanOrEqual(76, strlen($arr[$x]));
+                }
+            }
+            fclose($f);
+        }
+    }
 }

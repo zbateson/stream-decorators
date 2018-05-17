@@ -40,8 +40,8 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Finds the next end-of-line character to ensure a line isn't broken up
-     * while buffering.
+     * Reads to a 4-character boundary of valid base64 characters, ensuring a
+     * base64 chunk isn't split during read operations.
      *
      * @return string
      */
@@ -66,8 +66,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Removes invalid characters from a uuencoded string, and 'BEGIN' and 'END'
-     * line headers and footers from the passed string before returning it.
+     * Removes invalid characters from an encoded base64 string.
      *
      * @param string $str
      * @return string
@@ -78,8 +77,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Buffers bytes into $this->buffer, removing uuencoding headers and footers
-     * and decoding them.
+     * Buffers bytes into $this->buffer after decoding them.
      */
     private function readRawBytesIntoBuffer()
     {
@@ -146,12 +144,47 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
+     * Encodes the passed parameter to base64, and writes bytes to the
+     * underlying stream, adding a CRLF character after every 76 characters.
+     *
+     * @param string $write
+     */
+    private function encodeAndWriteChunked($write)
+    {
+        $p = $this->tellRaw();
+        $encoded = base64_encode($write);
+        if ($p !== 0) {
+            $next = 76 - ($p % 78);
+            if (strlen($encoded) > $next) {
+                $this->writeRaw(substr($encoded, 0, $next) . "\r\n");
+                $encoded = substr($encoded, $next);
+            }
+        }
+        $this->writeRaw(rtrim(chunk_split($encoded, 76)));
+    }
+
+    /**
+     * Writes the passed string to the underlying stream after encoding it to
+     * base64.
+     *
+     * Note that reading and writing to the same stream without rewinding is not
+     * supported.
      *
      * @param string $string
-     * @codeCoverageIgnore
      */
     public function write($string)
     {
-        // not implemented yet
+        $write = $this->buffer . $string;
+        $this->encodeAndWriteChunked($write);
+        $this->buffer = '';
+
+        $len = strlen($write);
+        $this->position += strlen($string);
+        // because each line is 76 characters (divisible by 4), we don't need
+        // to worry about breaking a chunk up.
+        if (($len % 3) !== 0) {
+            $this->buffer = substr($write, -($len % 3));
+            $this->seekRaw(-4, SEEK_CUR);
+        }
     }
 }
