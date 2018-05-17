@@ -135,4 +135,24 @@ class CharsetStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $csStream->seek(-1, SEEK_END);
         $this->assertEquals('9', $csStream->read(1));
     }
+
+    public function testWrite()
+    {
+        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
+        for ($i = 1; $i < mb_strlen($str); ++$i) {
+            $f = fopen('php://temp', 'r+');
+            $csStream = new CharsetStreamDecorator(Psr7\stream_for($f), 'UTF-32', 'UTF-8');
+            for ($j = 0; $j < mb_strlen($str, 'UTF-8'); $j += $i) {
+                $csStream->write(mb_substr($str, $j, $i, 'UTF-8'));
+            }
+            $csStream->rewind();
+            $this->assertEquals($str, $csStream->getContents());
+            rewind($f);
+            $streamContents = stream_get_contents($f);
+            $this->assertNotEquals($str, $streamContents);
+            $this->assertGreaterThan(strlen($str), strlen($streamContents));
+            $this->assertEquals($str, $this->converter->convert($streamContents, 'UTF-32', 'UTF-8'));
+            fclose($f);
+        }
+    }
 }

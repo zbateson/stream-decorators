@@ -10,14 +10,13 @@ use Psr\Http\Message\StreamInterface;
 use ZBateson\StreamDecorators\Util\CharsetConverter;
 
 /**
- * GuzzleHttp\Psr7 stream decoder extension for base64 streams.
+ * GuzzleHttp\Psr7 stream decoder extension for charset conversion.
  *
- * Extends AbstractMimeTransferStreamDecorator, which prevents getSize and
- * seeking to anywhere except the beginning (rewinding).
+ * The decorator automatically handles conversion between the stream's charset
+ * and the desired target (string, read) charset.
  *
- * The size of the underlying stream and the position of chars can't be
- * determined because some charsets (e.g. UTF-8), may take between 1 and 6(?) or
- * so bytes, and without reading them they are not known.
+ * Determining the correct character size of the underlying stream is an
+ * expensive operation, which requires reading to the end of the stream.
  *
  * @author Zaahid Bateson
  */
@@ -32,12 +31,13 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
     /**
      * @var string charset of the source stream
      */
-    protected $fromCharset = 'ISO-8859-1';
+    protected $streamCharset = 'ISO-8859-1';
     
     /**
-     * @var string charset to convert to
+     * @var string charset of strings passed in write operations, and returned
+     *      in read operations.
      */
-    protected $toCharset = 'UTF-8';
+    protected $stringCharset = 'UTF-8';
 
     /**
      * @var int number of characters in $buffer
@@ -45,22 +45,23 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
     private $bufferLength = 0;
 
     /**
-     * @var string a buffer of characters read in the original $fromCharset
+     * @var string a buffer of characters read in the original $streamCharset
      *      encoding
      */
     private $buffer = '';
 
     /**
      * @param StreamInterface $stream Stream to decorate
-     * @param string $fromCharset The underlying stream's charset
-     * @param string $toCharset The charset to encode to
+     * @param string $streamCharset The underlying stream's charset
+     * @param string $stringCharset The charset to encode strings to (or
+     *        expected for write)
      */
-    public function __construct(StreamInterface $stream, $fromCharset = 'ISO-8859-1', $toCharset = 'UTF-8')
+    public function __construct(StreamInterface $stream, $streamCharset = 'ISO-8859-1', $stringCharset = 'UTF-8')
     {
         parent::__construct($stream);
         $this->converter = new CharsetConverter();
-        $this->fromCharset = $fromCharset;
-        $this->toCharset = $toCharset;
+        $this->streamCharset = $streamCharset;
+        $this->stringCharset = $stringCharset;
     }
 
     /**
@@ -87,7 +88,7 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
                 return;
             }
             $this->buffer .= $raw;
-            $this->bufferLength = $this->converter->getLength($this->buffer, $this->fromCharset);
+            $this->bufferLength = $this->converter->getLength($this->buffer, $this->streamCharset);
         }
     }
 
@@ -102,8 +103,8 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Reads up to $length decoded bytes from the underlying quoted-printable
-     * encoded stream and returns them.
+     * Reads up to $length decoded bytes from the underlying stream and returns
+     * them after converting to the target string charset.
      *
      * @param int $length
      * @return string
@@ -116,22 +117,25 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
         }
         $this->readRawCharsIntoBuffer($length);
         $numChars = min([$this->bufferLength, $length]);
-        $chars = $this->converter->getSubstr($this->buffer, $this->fromCharset, 0, $numChars);
+        $chars = $this->converter->getSubstr($this->buffer, $this->streamCharset, 0, $numChars);
         
         $this->position += $numChars;
-        $this->buffer = $this->converter->getSubstr($this->buffer, $this->fromCharset, $numChars);
+        $this->buffer = $this->converter->getSubstr($this->buffer, $this->streamCharset, $numChars);
         $this->bufferLength = $this->bufferLength - $numChars;
 
-        return $this->converter->convert($chars, $this->fromCharset, $this->toCharset);
+        return $this->converter->convert($chars, $this->streamCharset, $this->stringCharset);
     }
 
     /**
+     * Writes the passed string to the underlying stream after converting it to
+     * the target stream encoding.
      *
      * @param string $string
-     * @codeCoverageIgnore
      */
     public function write($string)
     {
-        // not implemented yet
+        $converted = $this->converter->convert($string, $this->stringCharset, $this->streamCharset);
+        $this->position += $this->converter->getLength($converted, $this->streamCharset);
+        $this->writeRaw($converted);
     }
 }
