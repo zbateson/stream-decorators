@@ -21,217 +21,117 @@ namespace ZBateson\StreamDecorators;
 class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
 {
     /**
-     * @var int calculated read/write remainder for next read or write
-     *      operation.
+     * @var string string of buffered bytes
      */
-    protected $remainder = 0;
+    private $buffer = '';
 
     /**
-     * Resets the internal remainder.
+     * @var int number of bytes in $buffer
+     */
+    private $bufferLength = 0;
+
+    /**
+     * Resets the internal buffers.
      */
     protected function beforeSeek() {
-        $this->remainder = 0;
+        $this->bufferLength = 0;
+        $this->buffer = '';
+
     }
 
     /**
-     * Returns a map consisting of char keys mapped to their integer values.
-     *
-     * The array is initialized once statically, and returned on subsequent
-     * calls.
-     *
-     * @staticvar array $map
-     * @return array
-     */
-    private function getBase64CharMap() {
-        static $map = null;
-        if ($map === null) {
-            $map['='] = null;
-            $i = 0;
-            for ($char = ord('A'); $char <= ord('Z'); ++$char) {
-                $map[chr($char)] = $i++;
-            }
-            for ($char = ord('a'); $char <= ord('z'); ++$char) {
-                $map[chr($char)] = $i++;
-            }
-            for ($char = ord('0'); $char <= ord('9'); ++$char) {
-                $map[chr($char)] = $i++;
-            }
-            $map['+'] = $i++;
-            $map['/'] = $i++;
-        }
-        return $map;
-    }
-
-    /**
-     * Reads the next byte from the underlying base64 stream, and converts the
-     * returned base64 byte into its mapped value.
+     * Finds the next end-of-line character to ensure a line isn't broken up
+     * while buffering.
      *
      * @return string
      */
-    private function readNextBase64()
+    private function readToBase64Boundary($length)
     {
-        $chart = $this->getBase64CharMap();
-        while (($r = $this->readRaw(1)) !== '') {
-            if (isset($chart[$r])) {
-                return $chart[$r];
-            }
+        $raw = $this->readRaw($length);
+        if ($raw === false || $raw === '') {
+            return '';
         }
-        return null;
+        $str = $this->filterEncodedString($raw);
+        $strlen = strlen($str);
+        while (($strlen % 4) !== 0) {
+            $raw = $this->readRaw(4 - ($strlen % 4));
+            if ($raw === false || $raw === '') {
+                break;
+            }
+            $append = $this->filterEncodedString($raw);
+            $str .= $append;
+            $strlen += strlen($append);
+        }
+        return $str;
     }
 
     /**
-     * Calculates the value of the passed base64 $byte and $next byte, assigning
-     * any remainder to $this->remainder.
-     * 
-     * @param string $byte
-     * @param string $next
+     * Removes invalid characters from a uuencoded string, and 'BEGIN' and 'END'
+     * line headers and footers from the passed string before returning it.
+     *
+     * @param string $str
      * @return string
      */
-    private function calculateByteAndRemainder($byte, $next)
+    private function filterEncodedString($str)
     {
-        if ($this->position % 3 === 0) {
-            $byte = $next << 2;
-            $next = $this->readNextBase64();
-            if ($next === null) {
-                $this->remainder = 0;
-                return $byte;
-            }
-            $byte |= ($next >> 4);
-            $this->remainder = ($next & 0xf) << 4;
-        } elseif (($this->position - 1) % 3 === 0) {
-            $byte |= ($next >> 2);
-            $this->remainder = ($next & 0x3) << 6;
+        return preg_replace('/[^a-zA-Z0-9\/\+=]/', '', $str);
+    }
+
+    /**
+     * Buffers bytes into $this->buffer, removing uuencoding headers and footers
+     * and decoding them.
+     */
+    private function readRawBytesIntoBuffer()
+    {
+        // 5148 is divisible by both 78 and 4.  With CRLF removed, would be
+        // 5016 encoded bytes to decode if indeed each line is 76 characters
+        $encoded = $this->readToBase64Boundary(5148);
+        if ($encoded === '') {
+            $this->buffer = '';
         } else {
-            $byte |= $next;
+            $this->buffer = base64_decode($encoded);
         }
-
-        return $byte;
+        $this->bufferLength = strlen($this->buffer);
     }
 
     /**
-     * Reads the next binary byte by calculating it from the underlying base64
-     * stream, advances the read position ($this->position) and returns the
-     * byte.
-     *
-     * @return string
-     */
-    private function readNextByte()
-    {
-        $next = $this->readNextBase64();
-        if ($next === null) {
-            return null;
-        }
-        $byte = $this->calculateByteAndRemainder($this->remainder, $next);
-
-        ++$this->position;
-        return chr($byte);
-    }
-
-    /**
-     * Reads $length number of bytes from the underlying raw stream, filtering
-     * out invalid base64 bytes (e.g. newlines, or any byte not within the valid
-     * range).
-     *
-     * The method continues reading until $length number of bytes can be
-     * returned, or the end of the stream has been reached.
+     * Attempts to fill up to $length bytes of decoded bytes into $this->buffer,
+     * and returns them.
      *
      * @param int $length
      * @return string
      */
-    private function readAndFilterRawBlock($length)
+    private function getDecodedBytes($length)
     {
-        $bytes = '';
-        while (strlen($bytes) < $length) {
-            $read = $this->readRaw($length - strlen($bytes));
-            if ($read === '') {
-                return $bytes;
+        $data = $this->buffer;
+        $retLen = $this->bufferLength;
+        while ($retLen < $length) {
+            $this->readRawBytesIntoBuffer($length);
+            if ($this->bufferLength === 0) {
+                break;
             }
-            $bytes .= preg_replace('/[^a-zA-Z0-9\/\+\=]+/', '', $read);
+            $retLen += $this->bufferLength;
+            $data .= $this->buffer;
         }
-        return $bytes;
+        $ret = substr($data, 0, $length);
+        $this->buffer = substr($data, $length);
+        $this->bufferLength = strlen($this->buffer);
+        $this->position += strlen($ret);
+        return $ret;
     }
 
     /**
-     * Reads the number of bytes denoted by $length into the passed $bytes
-     * string by calculating their values using $this->remainder, and keeping
-     * any additional remainders in $this->remainder.
+     * Returns true if the end of stream has been reached.
      *
-     * This method is called when $this->position is not 3-byte aligned and the
-     * next byte to be read needs to be calculated either at the beginning of a
-     * read operation or at the end.
-     *
-     * The method returns -1 if the end of the stream has been (even if bytes
-     * have been read and concatenated to the passed $bytes string).  Otherwise,
-     * the number of bytes and concatenated to $bytes read is returned.
-     *
-     * @param int $length
-     * @param string $bytes
-     * @return int
+     * @return type
      */
-    private function readUnalignedBytesAndConcat($length, &$bytes)
+    public function eof()
     {
-        for ($i = 0; $i < $length; ++$i) {
-            $byte = $this->readNextByte();
-            if ($byte === null) {
-                return -1;
-            }
-            $bytes .= $byte;
-        }
-        return $i;
+        return ($this->bufferLength === 0 && parent::eof());
     }
 
     /**
-     * Reads up to $length number of bytes when $this->position is 3-bytes
-     * aligned.  If $length is not 3-byte aligned, the last block will not be
-     * read -- passing a $length of less than 3 will result in 0 bytes being
-     * read.
-     *
-     * This method uses base64_decode which is much faster than the calculated
-     * implementation in this class.
-     *
-     * The method returns the number of bytes read.
-     *
-     * @param int $length
-     * @param string $bytes
-     * @return int
-     */
-    private function readAlignedBytesAndConcat($length, &$bytes)
-    {
-        $readRaw = intval(($length * 4) / 3);
-        $readRaw -= $readRaw % 4;   // leave off partial blocks
-        $decoded = base64_decode($this->readAndFilterRawBlock($readRaw));
-        $length -= strlen($decoded);
-        $this->position += strlen($decoded);
-        $bytes .= $decoded;
-        return $length;
-    }
-
-    /**
-     * Determines how many bytes need to be read and calculated manually and
-     * calls $this->readUnalignedBytesAndConcat for them, and how many can be
-     * read without calculation using $this->readAlignedBytesAndConcat.
-     *
-     * @param int $length
-     * @return string
-     */
-    private function readBytes($length)
-    {
-        $bytes = '';
-        $positionRemainder = 3 - (($this->position + 3 - 1) % 3 + 1);
-        $read = $this->readUnalignedBytesAndConcat(min([$length, $positionRemainder]), $bytes);
-        if ($read === -1) {
-            return $bytes;
-        }
-        $length -= $read;
-        if ($length > 2) {
-            $length = $this->readAlignedBytesAndConcat($length, $bytes);
-        }
-        $this->readUnalignedBytesAndConcat($length, $bytes);
-        return $bytes;
-    }
-
-    /**
-     * Reads up to $length bytes and returns them.
+     * Attempts to read $length bytes after decoding them, and returns them.
      *
      * @param int $length
      * @return string
@@ -242,7 +142,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
         if ($length <= 0 || $this->eof()) {
             return $this->readRaw($length);
         }
-        return $this->readBytes($length);
+        return $this->getDecodedBytes($length);
     }
 
     /**
