@@ -24,11 +24,18 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     private $bufferLength = 0;
 
     /**
+     * @var string remainder of write operation if the bytes didn't align to 3
+     *      bytes
+     */
+    private $remainder = '';
+
+    /**
      * Resets the internal buffers.
      */
     protected function beforeSeek() {
         $this->bufferLength = 0;
         $this->buffer = '';
+        $this->flush();
     }
 
     /**
@@ -137,23 +144,24 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Encodes the passed parameter to base64, and writes bytes to the
-     * underlying stream, adding a CRLF character after every 76 characters.
+     * Encodes the passed parameter to base64, adding a CRLF character after
+     * every 76 characters, and returning the resulting string
      *
-     * @param string $write
+     * @param string $bytes
      */
-    private function encodeAndWriteChunked($write)
+    private function getEncodedAndChunkedString($bytes)
     {
         $p = $this->tellRaw();
-        $encoded = base64_encode($write);
+        $encoded = base64_encode($bytes);
+        $firstLine = '';
         if ($p !== 0) {
             $next = 76 - ($p % 78);
             if (strlen($encoded) > $next) {
-                $this->writeRaw(substr($encoded, 0, $next) . "\r\n");
+                $firstLine = substr($encoded, 0, $next) . "\r\n";
                 $encoded = substr($encoded, $next);
             }
         }
-        $this->writeRaw(rtrim(chunk_split($encoded, 76)));
+        return $firstLine . rtrim(chunk_split($encoded, 76));
     }
 
     /**
@@ -163,21 +171,57 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
      * Note that reading and writing to the same stream without rewinding is not
      * supported.
      *
+     * Also note that some bytes may not be written until close, detach, seek or
+     * flush are called.  This happens if written data doesn't align to 3 bytes.
+     * For instance if attempting to write a single byte 'M', writing out 'TQ=='
+     * would require seeking back and overwriting 'Q==' if a subsequent byte is
+     * written.  This is avoided by buffering, but requires indicating when the
+     * last byte is written.
+     *
      * @param string $string
      */
     public function write($string)
     {
-        $write = $this->buffer . $string;
-        $this->encodeAndWriteChunked($write);
-        $this->buffer = '';
-
-        $len = strlen($write);
-        $this->position += strlen($string);
-        // because each line is 76 characters (divisible by 4), we don't need
-        // to worry about breaking a chunk up.
+        $bytes = $this->remainder . $string;
+        $len = strlen($bytes);
         if (($len % 3) !== 0) {
-            $this->buffer = substr($write, -($len % 3));
-            $this->seekRaw(-4, SEEK_CUR);
+            $this->remainder = substr($bytes, -($len % 3));
+            $bytes = substr($bytes, 0, $len - ($len % 3));
+        } else {
+            $this->remainder = '';
         }
+
+        $write = $this->getEncodedAndChunkedString($bytes);
+        $this->writeRaw($write);
+        $this->position += strlen($string);
+    }
+
+    /**
+     * Writes out any remaining bytes to the underlying stream.
+     */
+    public function flush()
+    {
+        if ($this->remainder !== '') {
+            $this->writeRaw($this->getEncodedAndChunkedString($this->remainder));
+        }
+        $this->remainder = '';
+    }
+
+    /**
+     * Overridden to call flush() before detaching.
+     */
+    public function detach()
+    {
+        $this->flush();
+        parent::detach();
+    }
+
+    /**
+     * Overridden to call flush() before detaching.
+     */
+    public function close()
+    {
+        $this->flush();
+        parent::close();
     }
 }

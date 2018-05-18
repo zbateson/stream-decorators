@@ -176,4 +176,37 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
             fclose($f);
         }
     }
+
+    public function testWriteDifferentContentLengths()
+    {
+        $contents = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é';
+
+        for ($i = 1; $i < strlen($contents); ++$i) {
+            $str = substr($contents, 0, strlen($contents) - $i);
+            $f = fopen('php://temp', 'r+');
+            $streamDecorator = new Base64StreamDecorator(Psr7\stream_for($f));
+            for ($j = 0; $j < strlen($str); $j += $i) {
+                $streamDecorator->write(substr($str, $j, $i));
+            }
+            $streamDecorator->rewind();
+            $this->assertEquals($str, $streamDecorator->getContents());
+            rewind($f);
+            $raw = stream_get_contents($f);
+            $arr = explode("\r\n", $raw);
+            $this->assertGreaterThan(0, count($arr));
+            for ($x = 0; $x < count($arr); ++$x) {
+                if ($x < count($arr) - 1) {
+                    $this->assertEquals(76, strlen($arr[$x]));
+                } else {
+                    $this->assertLessThanOrEqual(76, strlen($arr[$x]));
+                }
+            }
+            fclose($f);
+        }
+    }
 }
