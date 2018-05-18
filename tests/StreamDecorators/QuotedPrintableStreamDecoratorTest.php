@@ -209,4 +209,32 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         fclose($handle);
         fclose($f);
     }
+
+    public function testWrite()
+    {
+        $contents = str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
+            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
+            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
+            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'vulgaire.é', 5);
+
+        for ($i = 1; $i < strlen($contents); ++$i) {
+            $f = fopen('php://temp', 'r+');
+            $streamDecorator = new QuotedPrintableStreamDecorator(Psr7\stream_for($f));
+            for ($j = 0; $j < strlen($contents); $j += $i) {
+                $streamDecorator->write(substr($contents, $j, $i));
+            }
+            $streamDecorator->rewind();
+            $this->assertEquals($contents, $streamDecorator->getContents());
+            rewind($f);
+            $raw = stream_get_contents($f);
+            $arr = explode("\r\n", $raw);
+            $this->assertGreaterThan(0, count($arr));
+            for ($x = 0; $x < count($arr); ++$x) {
+                $this->assertLessThanOrEqual(76, strlen($arr[$x]));
+            }
+            fclose($f);
+        }
+    }
 }

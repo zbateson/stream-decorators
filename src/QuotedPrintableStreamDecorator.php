@@ -9,17 +9,24 @@ namespace ZBateson\StreamDecorators;
 /**
  * GuzzleHttp\Psr7 stream decoder extension for quoted printable streams.
  *
- * Extends AbstractMimeTransferStreamDecorator, which prevents getSize and
- * seeking to anywhere except the beginning (rewinding).
- *
- * The size of the underlying stream and the position of bytes can't be
- * determined because the number of encoded bytes is indeterminate without
- * reading the entire stream.
+ * 
  *
  * @author Zaahid Bateson
  */
 class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
 {
+    /**
+     * @var string Last line of written text (used to maintain good line-breaks)
+     */
+    private $lastLine = '';
+
+    /**
+     * Overridden to reset buffered write block.
+     */
+    protected function beforeSeek() {
+        $this->lastLine = '';
+    }
+
     /**
      * Reads $length chars from the underlying stream, prepending the past $pre
      * to it first.
@@ -119,12 +126,26 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
+     * Writes the passed string to the underlying stream after encoding it as
+     * quoted-printable.
+     *
+     * Note that reading and writing to the same stream without rewinding is not
+     * supported.
      *
      * @param string $string
-     * @codeCoverageIgnore
      */
     public function write($string)
     {
-        // not implemented yet
+        $write = rtrim(quoted_printable_encode($this->lastLine . $string), "\r\n");
+        $this->writeRaw($write);
+        $this->position += strlen($string);
+
+        $lpos = strrpos($write, "\n");
+        $lastLine = $write;
+        if ($lpos !== false) {
+            $lastLine = substr($write, $lpos + 1);
+        }
+        $this->lastLine = quoted_printable_decode($lastLine);
+        $this->seekRaw(-strlen($lastLine), SEEK_CUR);
     }
 }
