@@ -9,13 +9,6 @@ namespace ZBateson\StreamDecorators;
 /**
  * GuzzleHttp\Psr7 stream decoder extension for base64 streams.
  *
- * Extends AbstractMimeTransferStreamDecorator, which prevents getSize and
- * seeking to anywhere except the beginning (rewinding).
- *
- * The size of the underlying stream and the position of bytes can't be
- * determined because the amount of whitespace isn't defined, so only a read
- * operation to the end of the stream could return the correct size.
- *
  * @author Zaahid Bateson
  */
 class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
@@ -36,13 +29,13 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     protected function beforeSeek() {
         $this->bufferLength = 0;
         $this->buffer = '';
-
     }
 
     /**
      * Reads to a 4-character boundary of valid base64 characters, ensuring a
      * base64 chunk isn't split during read operations.
      *
+     * @param int $length number of encoded bytes to read
      * @return string
      */
     private function readToBase64Boundary($length)

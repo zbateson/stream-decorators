@@ -12,12 +12,6 @@ use ZBateson\StreamDecorators\Util\CharsetConverter;
 /**
  * GuzzleHttp\Psr7 stream decoder extension for charset conversion.
  *
- * The decorator automatically handles conversion between the stream's charset
- * and the desired target (string, read) charset.
- *
- * Determining the correct character size of the underlying stream is an
- * expensive operation, which requires reading to the end of the stream.
- *
  * @author Zaahid Bateson
  */
 class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator

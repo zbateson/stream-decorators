@@ -13,9 +13,10 @@ use GuzzleHttp\Psr7\StreamDecoratorTrait;
  * A default abstract implementation of GuzzleHttp\Psr7 StreamInterface for MIME
  * message transfer encodings that:
  *
- *  o Returns null for getSize
- *  o Allows seeking to the beginning of the stream (rewind), and throw a
- *    RuntimeException otherwise
+ *  o Implements a getSize operation, reading to the end of the stream to
+ *    determine the stream's size, and seeking back to the current position
+ *  o Implements a seek operation, reading and discarding the desired number of
+ *    bytes from the decorator as a 'seek' operation
  *  o Provides a $position member for subclasses and a default 'tell'
  *    implementation returning it
  *  o Uses StreamDecoratorTrait, setting method visibility to protected and
@@ -115,6 +116,12 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
         $this->beforeSeek($pos);
         $this->seekRaw(0);
         $this->position = 0;
+        
+        // to avoid memory issues
+        while ($pos > 10240 && !$this->eof()) {
+            $this->read(10240);
+            $pos -= 10240;
+        }
         $this->read($pos);
     }
 
