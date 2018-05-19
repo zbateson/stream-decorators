@@ -212,18 +212,15 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Writes the passed string to the underlying stream after encoding it to
-     * base64.
+     * Writes the passed string to the underlying stream after encoding it.
      *
      * Note that reading and writing to the same stream without rewinding is not
      * supported.
      *
      * Also note that some bytes may not be written until close, detach, seek or
-     * flush are called.  This happens if written data doesn't align to 3 bytes.
-     * For instance if attempting to write a single byte 'M', writing out 'TQ=='
-     * would require seeking back and overwriting 'Q==' if a subsequent byte is
-     * written.  This is avoided by buffering, but requires indicating when the
-     * last byte is written.
+     * flush are called.  This happens if written data doesn't align to a
+     * complete uuencoded 'line' of 45 bytes.  In addition, the UU footer is
+     * only written when one of the mentioned methods are called.
      *
      * @param string $string
      */
