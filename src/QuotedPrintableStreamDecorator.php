@@ -136,16 +136,17 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function write($string)
     {
-        $write = rtrim(quoted_printable_encode($this->lastLine . $string), "\r\n");
+        $encodedLine = quoted_printable_encode($this->lastLine);
+        $lineAndString = rtrim(quoted_printable_encode($this->lastLine . $string), "\r\n");
+        $write = substr($lineAndString, strlen($encodedLine));
         $this->writeRaw($write);
         $this->position += strlen($string);
 
-        $lpos = strrpos($write, "\n");
-        $lastLine = $write;
+        $lpos = strrpos($lineAndString, "\n");
+        $lastLine = $lineAndString;
         if ($lpos !== false) {
-            $lastLine = substr($write, $lpos + 1);
+            $lastLine = substr($lineAndString, $lpos + 1);
         }
         $this->lastLine = quoted_printable_decode($lastLine);
-        $this->seekRaw(-strlen($lastLine), SEEK_CUR);
     }
 }
