@@ -30,6 +30,11 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     private $remainder = '';
 
     /**
+     * @var int number of raw bytes written to the underlying stream
+     */
+    private $writePosition = 0;
+
+    /**
      * Resets the internal buffers.
      */
     protected function beforeSeek() {
@@ -151,17 +156,18 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function getEncodedAndChunkedString($bytes)
     {
-        $p = $this->tellRaw();
         $encoded = base64_encode($bytes);
         $firstLine = '';
-        if ($p !== 0) {
-            $next = 76 - ($p % 78);
+        if ($this->writePosition !== 0) {
+            $next = 76 - ($this->writePosition % 78);
             if (strlen($encoded) > $next) {
                 $firstLine = substr($encoded, 0, $next) . "\r\n";
                 $encoded = substr($encoded, $next);
             }
         }
-        return $firstLine . rtrim(chunk_split($encoded, 76));
+        $write = $firstLine . rtrim(chunk_split($encoded, 76));
+        $this->writePosition += strlen($write);
+        return $write;
     }
 
     /**
@@ -205,6 +211,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
             $this->writeRaw($this->getEncodedAndChunkedString($this->remainder));
         }
         $this->remainder = '';
+        $this->writePosition = 0;
         parent::flush();
     }
 }

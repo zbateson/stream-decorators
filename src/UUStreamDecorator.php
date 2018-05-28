@@ -49,6 +49,11 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     private $headerWritten = false;
 
     /**
+     * @var boolean set to true when the UU footer is written
+     */
+    private $footerWritten = false;
+
+    /**
      * @param StreamInterface $stream Stream to decorate
      * @param string optional file name
      */
@@ -197,6 +202,7 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     private function writeUUFooter()
     {
        $this->writeRaw("\r\n`\r\nend");
+       $this->footerWritten = true;
     }
 
     /**
@@ -248,14 +254,12 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function flush()
     {
-        if ($this->isWritable()) {
-            if ($this->remainder !== '') {
-                $this->writeEncoded($this->remainder);
-            }
-            $this->remainder = '';
-            if ($this->headerWritten) {
-                $this->writeUUFooter();
-            }
+        if ($this->remainder !== '') {
+            $this->writeEncoded($this->remainder);
+        }
+        $this->remainder = '';
+        if ($this->headerWritten && !$this->footerWritten) {
+            $this->writeUUFooter();
         }
         parent::flush();
     }

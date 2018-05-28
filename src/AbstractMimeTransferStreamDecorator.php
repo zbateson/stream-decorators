@@ -35,14 +35,6 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     }
 
     /**
-     * Calls flush().
-     */
-    public function __destruct()
-    {
-        $this->flush();
-    }
-
-    /**
      * @var int current read/write position
      */
     protected $position = 0;
