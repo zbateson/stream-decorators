@@ -161,7 +161,7 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     public function detach()
     {
         $this->flush();
-        detachRaw();
+        $this->detachRaw();
     }
 
     /**
@@ -170,6 +170,6 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     public function close()
     {
         $this->flush();
-        closeRaw();
+        $this->closeRaw();
     }
 }
