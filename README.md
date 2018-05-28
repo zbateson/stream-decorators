@@ -5,6 +5,8 @@ Psr7 stream decorators for character set conversion and common mail format conte
 [![Build Status](https://travis-ci.org/zbateson/StreamDecorators.svg?branch=master)](https://travis-ci.org/zbateson/StreamDecorators)
 [![Code Coverage](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/?branch=master)
+[![Total Downloads](https://poser.pugx.org/zbateson/stream-decorators/downloads)](https://packagist.org/packages/zbateson/stream-decorators)
+[![Latest Stable Version](https://poser.pugx.org/zbateson/stream-decorators/version)](https://packagist.org/packages/zbateson/stream-decorators)
 
 The goals of this project are to be:
 
