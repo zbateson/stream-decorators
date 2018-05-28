@@ -201,27 +201,10 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function flush()
     {
-        if ($this->remainder !== '') {
+        if ($this->isWritable() && $this->remainder !== '') {
             $this->writeRaw($this->getEncodedAndChunkedString($this->remainder));
         }
         $this->remainder = '';
-    }
-
-    /**
-     * Overridden to call flush() before detaching.
-     */
-    public function detach()
-    {
-        $this->flush();
-        parent::detach();
-    }
-
-    /**
-     * Overridden to call flush() before detaching.
-     */
-    public function close()
-    {
-        $this->flush();
-        parent::close();
+        parent::flush();
     }
 }

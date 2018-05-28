@@ -248,31 +248,16 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function flush()
     {
-        if ($this->remainder !== '') {
-            $this->writeEncoded($this->remainder);
+        if ($this->isWritable()) {
+            if ($this->remainder !== '') {
+                $this->writeEncoded($this->remainder);
+            }
+            $this->remainder = '';
+            if ($this->headerWritten) {
+                $this->writeUUFooter();
+            }
         }
-        $this->remainder = '';
-        if ($this->headerWritten) {
-            $this->writeUUFooter();
-        }
-    }
-
-    /**
-     * Overridden to call flush() before detaching.
-     */
-    public function detach()
-    {
-        $this->flush();
-        parent::detach();
-    }
-
-    /**
-     * Overridden to call flush() before detaching.
-     */
-    public function close()
-    {
-        $this->flush();
-        parent::close();
+        parent::flush();
     }
 
     /**

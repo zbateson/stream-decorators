@@ -35,6 +35,14 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     }
 
     /**
+     * Calls flush().
+     */
+    public function __destruct()
+    {
+        $this->flush();
+    }
+
+    /**
      * @var int current read/write position
      */
     protected $position = 0;
@@ -141,4 +149,33 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
      * @return string the string that was read
      */
     public abstract function read($length);
+
+    /**
+     * Flushes the underlying stream object if it's an instance of
+     * AbstractMimeTransferStreamDecorator.
+     */
+    public function flush()
+    {
+        if ($this->stream && $this->stream instanceof AbstractMimeTransferStreamDecorator) {
+            $this->stream->flush();
+        }
+    }
+
+    /**
+     * Overridden to call flush() before detaching.
+     */
+    public function detach()
+    {
+        $this->flush();
+        parent::detach();
+    }
+
+    /**
+     * Overridden to call flush() before detaching.
+     */
+    public function close()
+    {
+        $this->flush();
+        parent::close();
+    }
 }
