@@ -32,6 +32,8 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
         StreamDecoratorTrait::tell as protected tellRaw;
         StreamDecoratorTrait::write as protected writeRaw;
         StreamDecoratorTrait::read as protected readRaw;
+        StreamDecoratorTrait::detach as protected detachRaw;
+        StreamDecoratorTrait::close as protected closeRaw;
     }
 
     /**
@@ -159,7 +161,7 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     public function detach()
     {
         $this->flush();
-        parent::detach();
+        detachRaw();
     }
 
     /**
@@ -168,6 +170,6 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
     public function close()
     {
         $this->flush();
-        parent::close();
+        closeRaw();
     }
 }
