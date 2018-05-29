@@ -229,6 +229,7 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      * only written when one of the mentioned methods are called.
      *
      * @param string $string
+     * @return int the number of bytes written
      */
     public function write($string)
     {
@@ -246,7 +247,9 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
         if ($write !== '') {
             $this->writeEncoded($write);
         }
-        $this->position += strlen($string);
+        $written = strlen($string);
+        $this->position += $written;
+        return $written;
     }
 
     /**

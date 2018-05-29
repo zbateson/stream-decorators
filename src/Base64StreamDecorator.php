@@ -185,6 +185,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
      * last byte is written.
      *
      * @param string $string
+     * @return int the number of bytes written
      */
     public function write($string)
     {
@@ -199,7 +200,9 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
 
         $write = $this->getEncodedAndChunkedString($bytes);
         $this->writeRaw($write);
-        $this->position += strlen($string);
+        $written = strlen($string);
+        $this->position += $written;
+        return $written;
     }
 
     /**

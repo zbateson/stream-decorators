@@ -132,6 +132,7 @@ abstract class AbstractMimeTransferStreamDecorator implements StreamInterface
      * underlying stream.
      *
      * @param string $string
+     * @return int the number of bytes written
      */
     public abstract function write($string);
 

@@ -133,6 +133,7 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
      * supported.
      *
      * @param string $string
+     * @return int the number of bytes written
      */
     public function write($string)
     {
@@ -140,7 +141,8 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
         $lineAndString = rtrim(quoted_printable_encode($this->lastLine . $string), "\r\n");
         $write = substr($lineAndString, strlen($encodedLine));
         $this->writeRaw($write);
-        $this->position += strlen($string);
+        $written = strlen($string);
+        $this->position += $written;
 
         $lpos = strrpos($lineAndString, "\n");
         $lastLine = $lineAndString;
@@ -148,5 +150,6 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
             $lastLine = substr($lineAndString, $lpos + 1);
         }
         $this->lastLine = quoted_printable_decode($lastLine);
+        return $written;
     }
 }

@@ -125,11 +125,14 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
      * the target stream encoding.
      *
      * @param string $string
+     * @return int the number of bytes written
      */
     public function write($string)
     {
         $converted = $this->converter->convert($string, $this->stringCharset, $this->streamCharset);
-        $this->position += $this->converter->getLength($converted, $this->streamCharset);
+        $written = $this->converter->getLength($converted, $this->streamCharset);
+        $this->position += $written;
         $this->writeRaw($converted);
+        return $written;
     }
 }
