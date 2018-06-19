@@ -3,16 +3,15 @@ namespace ZBateson\StreamDecorators;
 
 use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
-use ZBateson\StreamDecorators\Util\CharsetConverter;
 
 /**
- * Description of NonClosingStreamDecoratorTest
+ * Description of NonClosingLimitStreamTest
  *
- * @group NonClosingStreamDecorator
- * @covers ZBateson\StreamDecorators\NonClosingStreamDecorator
+ * @group NonClosingLimitStream
+ * @covers ZBateson\StreamDecorators\NonClosingLimitStream
  * @author Zaahid Bateson
  */
-class NonClosingStreamDecoratorTest extends PHPUnit_Framework_TestCase
+class NonClosingLimitStreamTest extends PHPUnit_Framework_TestCase
 {
     public function testClose()
     {
