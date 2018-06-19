@@ -201,8 +201,8 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function writeUUFooter()
     {
-       $this->writeRaw("\r\n`\r\nend\r\n");
-       $this->footerWritten = true;
+        $this->writeRaw("\r\n`\r\nend\r\n");
+        $this->footerWritten = true;
     }
 
     /**
