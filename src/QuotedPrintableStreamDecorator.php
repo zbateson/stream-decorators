@@ -152,4 +152,15 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
         $this->lastLine = quoted_printable_decode($lastLine);
         return $written;
     }
+
+    /**
+     * Writes out a CRLF.
+     */
+    public function flush()
+    {
+        if ($this->lastLine !== '') {
+            $this->writeRaw("\r\n");
+            $this->lastLine = '';
+        }
+    }
 }

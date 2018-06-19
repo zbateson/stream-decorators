@@ -30,7 +30,7 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
     private $remainder = '';
 
     /**
-     * @var int number of raw bytes written to the underlying stream
+     * @var int number of bytes written to the underlying stream
      */
     private $writePosition = 0;
 
@@ -210,11 +210,14 @@ class Base64StreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function flush()
     {
-        if ($this->isWritable() && $this->remainder !== '') {
-            $this->writeRaw($this->getEncodedAndChunkedString($this->remainder));
+        if ($this->isWritable() && ($this->writePosition !== 0 || $this->remainder !== '')) {
+            if ($this->remainder !== '') {
+                $this->writeRaw($this->getEncodedAndChunkedString($this->remainder));
+            }
+            $this->writeRaw("\r\n");
+            $this->remainder = '';
+            $this->writePosition = 0;
         }
-        $this->remainder = '';
-        $this->writePosition = 0;
         parent::flush();
     }
 }

@@ -167,8 +167,8 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
             $arr = explode("\r\n", $raw);
             $this->assertGreaterThan(0, count($arr));
             for ($x = 0; $x < count($arr); ++$x) {
-                if ($x < count($arr) - 1) {
-                    $this->assertEquals(76, strlen($arr[$x]));
+                if ($x < count($arr) - 2) {
+                    $this->assertEquals(76, strlen($arr[$x]), "line $x of " . count($arr) . " is less than 76 characters long");
                 } else {
                     $this->assertLessThanOrEqual(76, strlen($arr[$x]));
                 }
@@ -200,7 +200,7 @@ class Base64StreamDecoratorTest extends PHPUnit_Framework_TestCase
             $arr = explode("\r\n", $raw);
             $this->assertGreaterThan(0, count($arr));
             for ($x = 0; $x < count($arr); ++$x) {
-                if ($x < count($arr) - 1) {
+                if ($x < count($arr) - 2) {
                     $this->assertEquals(76, strlen($arr[$x]));
                 } else {
                     $this->assertLessThanOrEqual(76, strlen($arr[$x]));
