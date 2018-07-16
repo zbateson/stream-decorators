@@ -29,7 +29,7 @@ StreamDecorators requires PHP 5.4 or newer or HHVM.  Tested on PHP 5.4, 5.5, 5.6
 
 ```php
 $stream = GuzzleHttp\Psr7\stream_for($handle);
-$b64Stream = new ZBateson\StreamDecorators\Base64StreamDecorator($stream);
+$b64Stream = new ZBateson\StreamDecorators\Base64Stream($stream);
 $charsetStream = new ZBateson\StreamDecorators\CharsetStreamDecorator($b64Stream, 'UTF-32', 'UTF-8');
 
 while (($line = GuzzleHttp\Psr7\readline()) !== false) {
@@ -40,11 +40,17 @@ while (($line = GuzzleHttp\Psr7\readline()) !== false) {
 
 The library consists of the following Psr\Http\Message\StreamInterface implementations:
 * ZBateson\StreamDecorators\QuotedPrintableStreamDecorator
-* ZBateson\StreamDecorators\Base64StreamDecorator
+* ZBateson\StreamDecorators\Base64Stream
 * ZBateson\StreamDecorators\UUStreamDecorator
 * ZBateson\StreamDecorators\CharsetStreamDecorator
+* ZBateson\StreamDecorators\NonClosingStream
+* ZBateson\StreamDecorators\ChunkSplitStream
+* ZBateson\StreamDecorators\PregReplaceFilterStream
 
-All of them take a single argument of a StreamInterface with the exception of CharsetStreamDecorators, which also takes $fromCharset and $toCharset as arguments respectively.
+All of them take a single argument of a StreamInterface with the exceptions of CharsetStreamDecorators,
+which also takes $fromCharset and $toCharset as arguments respectively, ChunkSplitStream which optionally
+takes a $lineLength argument (defaults to 76) and a $lineEnding argument (defaults to CRLF) and
+PregReplaceFilterStream which takes a $pattern argument and a $replacement argument.
 
 In addition, the library exposes a ZBateson\StreamDecorators\Util\CharsetConverter class which provides the following:
 * a map of supported charsets with different names (aliases)

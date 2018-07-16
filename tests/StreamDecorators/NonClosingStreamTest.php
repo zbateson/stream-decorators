@@ -5,20 +5,19 @@ use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
 
 /**
- * Description of NonClosingLimitStreamTest
+ * Description of NonClosingStreamTest
  *
- * @group NonClosingLimitStream
- * @covers ZBateson\StreamDecorators\NonClosingLimitStream
+ * @group NonClosingStream
+ * @covers ZBateson\StreamDecorators\NonClosingStream
  * @author Zaahid Bateson
  */
-class NonClosingLimitStreamTest extends PHPUnit_Framework_TestCase
+class NonClosingStreamTest extends PHPUnit_Framework_TestCase
 {
     public function testClose()
     {
         $str = 'Testacular';
         $org = Psr7\stream_for($str);
-        $stream = new NonClosingLimitStream($org);
-
+        $stream = new NonClosingStream($org);
         $stream->close();
         $this->assertSame($org->getContents(), 'Testacular');
     }
@@ -27,8 +26,7 @@ class NonClosingLimitStreamTest extends PHPUnit_Framework_TestCase
     {
         $str = 'Testacular';
         $org = Psr7\stream_for($str);
-        $stream = new NonClosingLimitStream($org);
-
+        $stream = new NonClosingStream($org);
         $stream->detach();
         $this->assertSame($org->getContents(), 'Testacular');
     }
