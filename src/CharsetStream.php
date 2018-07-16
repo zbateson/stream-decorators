@@ -7,18 +7,21 @@
 namespace ZBateson\StreamDecorators;
 
 use Psr\Http\Message\StreamInterface;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use ZBateson\StreamDecorators\Util\CharsetConverter;
+use RuntimeException;
 
 /**
  * GuzzleHttp\Psr7 stream decoder extension for charset conversion.
  *
  * @author Zaahid Bateson
  */
-class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
+class CharsetStream implements StreamInterface
 {
+    use StreamDecoratorTrait;
+
     /**
-     * @var \ZBateson\StreamDecorators\Util\CharsetConverter the charset
-     *      converter
+     * @var CharsetConverter the charset converter
      */
     protected $converter = null;
     
@@ -34,7 +37,12 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
     protected $stringCharset = 'UTF-8';
 
     /**
-     * @var int number of characters in $buffer
+     * @var int current read/write position
+     */
+    private $position = 0;
+
+    /**
+     * @var int number of $stringCharset characters in $buffer
      */
     private $bufferLength = 0;
 
@@ -52,19 +60,52 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function __construct(StreamInterface $stream, $streamCharset = 'ISO-8859-1', $stringCharset = 'UTF-8')
     {
-        parent::__construct($stream);
+        $this->stream = $stream;
         $this->converter = new CharsetConverter();
         $this->streamCharset = $streamCharset;
         $this->stringCharset = $stringCharset;
     }
 
     /**
-     * Resets the internal buffers.
+     * Overridden to return the position in the target encoding.
+     *
+     * @return int
      */
-    protected function beforeSeek() {
-        $this->bufferLength = 0;
-        $this->buffer = '';
+    public function tell()
+    {
+        return $this->position;
+    }
 
+    /**
+     * Returns null, getSize isn't supported
+     *
+     * @return null
+     */
+    public function getSize()
+    {
+        return null;
+    }
+
+    /**
+     * Not supported.
+     *
+     * @param int $offset
+     * @param int $whence
+     * @throws RuntimeException
+     */
+    public function seek($offset, $whence = SEEK_SET)
+    {
+        throw new RuntimeException('Cannot seek a CharsetStream');
+    }
+
+    /**
+     * Overridden to return false
+     *
+     * @return boolean
+     */
+    public function isSeekable()
+    {
+        return false;
     }
 
     /**
@@ -77,7 +118,7 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
     {
         $n = $length + 32;
         while ($this->bufferLength < $n) {
-            $raw = $this->readRaw($n + 512);
+            $raw = $this->stream->read($n + 512);
             if ($raw === false || $raw === '') {
                 return;
             }
@@ -93,7 +134,7 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function eof()
     {
-        return ($this->bufferLength === 0 && parent::eof());
+        return ($this->bufferLength === 0 && $this->stream->eof());
     }
 
     /**
@@ -107,7 +148,7 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
     {
         // let Guzzle decide what to do.
         if ($length <= 0 || $this->eof()) {
-            return $this->readRaw($length);
+            return $this->stream->read($length);
         }
         $this->readRawCharsIntoBuffer($length);
         $numChars = min([$this->bufferLength, $length]);
@@ -132,7 +173,6 @@ class CharsetStreamDecorator extends AbstractMimeTransferStreamDecorator
         $converted = $this->converter->convert($string, $this->stringCharset, $this->streamCharset);
         $written = $this->converter->getLength($converted, $this->streamCharset);
         $this->position += $written;
-        $this->writeRaw($converted);
-        return $written;
+        return $this->stream->write($converted);
     }
 }
