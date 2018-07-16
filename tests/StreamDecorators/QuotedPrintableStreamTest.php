@@ -5,16 +5,16 @@ use PHPUnit_Framework_TestCase;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
 use GuzzleHttp\Psr7\LimitStream;
+use GuzzleHttp\Psr7\CachingStream;
 
 /**
- * Description of QuotedPrintableStreamDecoratorTest
+ * Description of QuotedPrintableStreamTest
  *
- * @group QuotedPrintableStreamDecorator
- * @covers ZBateson\StreamDecorators\AbstractMimeTransferStreamDecorator
- * @covers ZBateson\StreamDecorators\QuotedPrintableStreamDecorator
+ * @group QuotedPrintableStream
+ * @covers ZBateson\StreamDecorators\QuotedPrintableStream
  * @author Zaahid Bateson
  */
-class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
+class QuotedPrintableStreamTest extends PHPUnit_Framework_TestCase
 {
     public function testReadAndRewind()
     {
@@ -27,10 +27,9 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é', 10);
         $stream = Psr7\stream_for(quoted_printable_encode($str));
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
-
         for ($i = 1; $i < strlen($str); ++$i) {
-            $qpStream->rewind();
+            $stream->rewind();
+            $qpStream = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
                 $this->assertEquals(substr($str, $j, $i), $qpStream->read($i), "Read $j failed at $i step");
             }
@@ -49,27 +48,9 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         for ($i = 0; $i < strlen($str); ++$i) {
             $substr = substr($str, 0, $i + 1);
             $stream = Psr7\stream_for(quoted_printable_encode($substr));
-            $qpStream = new QuotedPrintableStreamDecorator($stream);
+            $qpStream = new QuotedPrintableStream($stream);
             $this->assertEquals($substr, $qpStream->getContents());
         }
-    }
-
-    public function testRewindAndReadFromLimitStreamHandle()
-    {
-        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
-            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
-            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
-            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
-            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é';
-
-        $stream = Psr7\stream_for(quoted_printable_encode($str));
-        $limitStream = new LimitStream($stream);
-        $qpStream = new QuotedPrintableStreamDecorator($limitStream);
-
-        $limitStream->getContents();
-        $qpStream->rewind();
-        $this->assertEquals($str, $qpStream->getContents());
     }
 
     public function testReadToEof()
@@ -83,7 +64,7 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         for ($i = 0; $i < strlen($str); ++$i) {
             $substr = substr($str, $i);
             $stream = Psr7\stream_for(quoted_printable_encode($substr));
-            $qpStream = new QuotedPrintableStreamDecorator($stream);
+            $qpStream = new QuotedPrintableStream($stream);
             for ($j = 0; !$qpStream->eof(); ++$j) {
                 $this->assertEquals(substr($substr, $j, 1), $qpStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
@@ -104,9 +85,9 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . "ent=C3=B4t qui te d=C3=A9gradent, car si leur musique est vulgaire ils te f=\n"
             . "abriquent pour te la vendre une =C3=A2me vulgaire.";
         $stream = Psr7\stream_for($encoded);
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
         for ($i = 1; $i < strlen($str); ++$i) {
-            $qpStream->rewind();
+            $stream->rewind();
+            $qpStream = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
                 $this->assertEquals(substr($str, $j, $i), $qpStream->read($i), "Read $j failed at $i step");
             }
@@ -116,19 +97,10 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testGetSize()
     {
-        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
-            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
-            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
-            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
-            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é';
-
+        $str = 'Sweetest little pie';
         $stream = Psr7\stream_for(quoted_printable_encode($str));
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
-        for ($i = 0; $i < strlen($str); ++$i) {
-            $this->assertEquals(strlen($str), $qpStream->getSize());
-            $this->assertEquals(substr($str, $i, 1), $qpStream->read(1), "Failed reading to EOF on substr $i");
-        }
+        $qpStream = new QuotedPrintableStream($stream);
+        $this->assertNull($qpStream->getSize());
     }
 
     public function testTell()
@@ -140,10 +112,9 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
         $stream = Psr7\stream_for(quoted_printable_encode($str));
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
-
         for ($i = 1; $i < strlen($str); ++$i) {
-            $qpStream->rewind();
+            $stream->rewind();
+            $qpStream = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
                 $this->assertEquals($j, $qpStream->tell(), "Tell at $j failed with $i step");
                 $qpStream->read($i);
@@ -152,42 +123,21 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testSeekCur()
-    {
-        $stream = Psr7\stream_for(quoted_printable_encode('test'));
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
-        $this->assertEquals('te', $qpStream->read(2));
-        $qpStream->seek(-2, SEEK_CUR);
-        $this->assertEquals('te', $qpStream->read(2));
-        $qpStream->seek(1, SEEK_CUR);
-        $this->assertEquals('t', $qpStream->read(1));
-    }
-
-    public function testSeek()
-    {
-        $stream = Psr7\stream_for(quoted_printable_encode('0123456789'));
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
-        $qpStream->seek(4);
-        $this->assertEquals('4', $qpStream->read(1));
-        $qpStream->seek(-1, SEEK_END);
-        $this->assertEquals('9', $qpStream->read(1));
-    }
-
     public function testBadlyEncodedStrings()
     {
         $encoded = "=";
         $stream = Psr7\stream_for($encoded);
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
+        $qpStream = new QuotedPrintableStream($stream);
         $this->assertEquals('', $qpStream->getContents());
 
         $encoded = "= ";
         $stream = Psr7\stream_for($encoded);
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
+        $qpStream = new QuotedPrintableStream($stream);
         $this->assertEquals('= ', $qpStream->getContents());
 
         $encoded = "=asdf";
         $stream = Psr7\stream_for($encoded);
-        $qpStream = new QuotedPrintableStreamDecorator($stream);
+        $qpStream = new QuotedPrintableStream($stream);
         $this->assertEquals('=', $qpStream->read(1));
         $this->assertEquals('a', $qpStream->read(1));
         $this->assertEquals('s', $qpStream->read(1));
@@ -201,13 +151,8 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $org = './tests/_data/blueball.png';
         $f = fopen($encoded, 'r');
 
-        $streamDecorator = new QuotedPrintableStreamDecorator(Psr7\stream_for($f));
-        $handle = StreamWrapper::getResource($streamDecorator);
-
-        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
-
-        fclose($handle);
-        fclose($f);
+        $stream = new QuotedPrintableStream(Psr7\stream_for($f));
+        $this->assertEquals(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testWrite()
@@ -220,21 +165,33 @@ class QuotedPrintableStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'vulgaire.é', 5);
 
         for ($i = 1; $i < strlen($contents); ++$i) {
-            $f = fopen('php://temp', 'r+');
-            $streamDecorator = new QuotedPrintableStreamDecorator(Psr7\stream_for($f));
+            $stream = Psr7\stream_for(fopen('php://temp', 'r+'));
+            $out = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($contents); $j += $i) {
-                $streamDecorator->write(substr($contents, $j, $i));
+                $out->write(substr($contents, $j, $i));
             }
-            $streamDecorator->rewind();
-            $this->assertEquals($contents, $streamDecorator->getContents());
-            rewind($f);
-            $raw = stream_get_contents($f);
+            $out->close();
+
+            $stream->rewind();
+            $in = new QuotedPrintableStream(new NonClosingStream($stream));
+            $this->assertEquals($contents, rtrim($in->getContents()));
+
+            $stream->rewind();
+            $raw = $stream->getContents();
             $arr = explode("\r\n", $raw);
             $this->assertGreaterThan(0, count($arr));
             for ($x = 0; $x < count($arr); ++$x) {
                 $this->assertLessThanOrEqual(76, strlen($arr[$x]));
             }
-            fclose($f);
         }
+    }
+
+    public function testSeekUnsopported()
+    {
+        $stream = Psr7\stream_for(quoted_printable_encode('Sweetest little pie'));
+        $test = new QuotedPrintableStream($stream);
+        $this->assertFalse($test->isSeekable());
+        $this->setExpectedException('RuntimeException');
+        $test->seek(0);
     }
 }

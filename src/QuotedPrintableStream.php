@@ -6,25 +6,69 @@
  */
 namespace ZBateson\StreamDecorators;
 
+use Psr\Http\Message\StreamInterface;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use RuntimeException;
+
 /**
- * GuzzleHttp\Psr7 stream decoder extension for quoted printable streams.
- *
- * 
+ * GuzzleHttp\Psr7 stream decoder decorator for quoted printable streams.
  *
  * @author Zaahid Bateson
  */
-class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
+class QuotedPrintableStream implements StreamInterface
 {
+    use StreamDecoratorTrait;
+
+    /**
+     * @var int current read/write position
+     */
+    private $position = 0;
+
     /**
      * @var string Last line of written text (used to maintain good line-breaks)
      */
     private $lastLine = '';
 
     /**
-     * Overridden to reset buffered write block.
+     * Overridden to return the position in the target encoding.
+     *
+     * @return int
      */
-    protected function beforeSeek() {
-        $this->lastLine = '';
+    public function tell()
+    {
+        return $this->position;
+    }
+
+    /**
+     * Returns null, getSize isn't supported
+     *
+     * @return null
+     */
+    public function getSize()
+    {
+        return null;
+    }
+
+    /**
+     * Not supported.
+     *
+     * @param int $offset
+     * @param int $whence
+     * @throws RuntimeException
+     */
+    public function seek($offset, $whence = SEEK_SET)
+    {
+        throw new RuntimeException('Cannot seek a QuotedPrintableStream');
+    }
+
+    /**
+     * Overridden to return false
+     *
+     * @return boolean
+     */
+    public function isSeekable()
+    {
+        return false;
     }
 
     /**
@@ -44,10 +88,10 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function readEncodedChars($length, $pre = '')
     {
-        $str = $pre . $this->readRaw($length);
+        $str = $pre . $this->stream->read($length);
         $len = strlen($str);
-        if ($len > 0 && !preg_match('/^[0-9a-f]{2}$|^[\r\n].$/is', $str)) {
-            $this->seekRaw(-$len, SEEK_CUR);
+        if ($len > 0 && !preg_match('/^[0-9a-f]{2}$|^[\r\n].$/is', $str) && $this->stream->isSeekable()) {
+            $this->stream->seek(-$len, SEEK_CUR);
             return '3D';    // '=' character
         }
         return $str;
@@ -89,7 +133,7 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function readRawDecodeAndAppend($length, &$str)
     {
-        $block = $this->readRaw($length);
+        $block = $this->stream->read($length);
         if ($block === false || $block === '') {
             return -1;
         }
@@ -110,7 +154,7 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
     {
         // let Guzzle decide what to do.
         if ($length <= 0 || $this->eof()) {
-            return $this->readRaw($length);
+            return $this->stream->read($length);
         }
         $count = 0;
         $bytes = '';
@@ -140,7 +184,7 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
         $encodedLine = quoted_printable_encode($this->lastLine);
         $lineAndString = rtrim(quoted_printable_encode($this->lastLine . $string), "\r\n");
         $write = substr($lineAndString, strlen($encodedLine));
-        $this->writeRaw($write);
+        $this->stream->write($write);
         $written = strlen($string);
         $this->position += $written;
 
@@ -154,13 +198,33 @@ class QuotedPrintableStreamDecorator extends AbstractMimeTransferStreamDecorator
     }
 
     /**
-     * Writes out a CRLF.
+     * Writes out a final CRLF if the current line isn't empty.
      */
-    public function flush()
+    private function beforeClose()
     {
-        if ($this->lastLine !== '') {
-            $this->writeRaw("\r\n");
+        if ($this->isWritable() && $this->lastLine !== '') {
+            $this->stream->write("\r\n");
             $this->lastLine = '';
         }
+    }
+
+    /**
+     * Closes the underlying stream and writes a final CRLF if the current line
+     * isn't empty.
+     */
+    public function close()
+    {
+        $this->beforeClose();
+        $this->stream->close();
+    }
+
+    /**
+     * Closes the underlying stream and writes a final CRLF if the current line
+     * isn't empty.
+     */
+    public function detach()
+    {
+        $this->beforeClose();
+        $this->stream->detach();
     }
 }
