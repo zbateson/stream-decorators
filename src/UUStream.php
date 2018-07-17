@@ -52,7 +52,7 @@ class UUStream implements StreamInterface
 
     /**
      * @param StreamInterface $stream Stream to decorate
-     * @param string optional file name
+     * @param string $filename optional file name
      */
     public function __construct(StreamInterface $stream, $filename = null)
     {
@@ -209,7 +209,6 @@ class UUStream implements StreamInterface
     private function writeUUFooter()
     {
         $this->stream->write("\r\n`\r\nend\r\n");
-        $this->footerWritten = true;
     }
 
     /**

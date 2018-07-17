@@ -92,7 +92,7 @@ class Base64Stream implements StreamInterface
     /**
      * Returns true if the end of stream has been reached.
      *
-     * @return type
+     * @return boolean
      */
     public function eof()
     {
