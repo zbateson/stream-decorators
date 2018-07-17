@@ -6,14 +6,13 @@ use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
 
 /**
- * Description of UUStreamDecoratorTest
+ * Description of UUStreamTest
  *
- * @group UUStreamDecorator
- * @covers ZBateson\StreamDecorators\AbstractMimeTransferStreamDecorator
- * @covers ZBateson\StreamDecorators\UUStreamDecorator
+ * @group UUStream
+ * @covers ZBateson\StreamDecorators\UUStream
  * @author Zaahid Bateson
  */
-class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
+class UUStreamTest extends PHPUnit_Framework_TestCase
 {
     public function testReadAndRewind()
     {
@@ -24,10 +23,9 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é', 10);
         $stream = Psr7\stream_for(convert_uuencode($str));
-        $uuStream = new UUStreamDecorator($stream);
-
         for ($i = 1; $i < strlen($str); ++$i) {
-            $uuStream->rewind();
+            $stream->rewind();
+            $uuStream = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
                 $this->assertEquals(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
             }
@@ -44,11 +42,11 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é', 10);
         $encoded = preg_replace('/([^\r]?)\n/', "$1\r\n", convert_uuencode($str));
-        $stream = Psr7\stream_for($encoded);
-        $uuStream = new UUStreamDecorator($stream);
 
+        $stream = Psr7\stream_for($encoded);
         for ($i = 1; $i < strlen($str); ++$i) {
-            $uuStream->rewind();
+            $stream->rewind();
+            $uuStream = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
                 $this->assertEquals(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
             }
@@ -67,7 +65,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
         for ($i = 0; $i < strlen($str); ++$i) {
             $substr = substr($str, 0, $i + 1);
             $stream = Psr7\stream_for(convert_uuencode($substr));
-            $uuStream = new UUStreamDecorator($stream);
+            $uuStream = new UUStream($stream);
             $this->assertEquals($substr, $uuStream->getContents());
         }
     }
@@ -82,7 +80,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'vulgaire.é';
         for ($i = 0; $i < strlen($str); ++$i) {
             $stream = Psr7\stream_for(convert_uuencode(substr($str, $i)));
-            $uuStream = new UUStreamDecorator($stream);
+            $uuStream = new UUStream($stream);
             for ($j = $i; !$uuStream->eof(); ++$j) {
                 $this->assertEquals(substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
@@ -91,21 +89,12 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
 
     public function testGetSize()
     {
-        $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
-            . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
-            . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
-            . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
-            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
-            . 'vulgaire.é';
-
-        $stream = Psr7\stream_for(convert_uuencode($str));
-        $uuStream = new UUStreamDecorator($stream);
-        for ($i = 0; $i < strlen($str); ++$i) {
-            $this->assertEquals(strlen($str), $uuStream->getSize());
-            $this->assertEquals(substr($str, $i, 1), $uuStream->read(1), "Failed reading to EOF on substr $i");
-        }
+        $str = 'Sweetest little pie';
+        $stream = Psr7\stream_for(quoted_printable_encode($str));
+        $uuStream = new UUStream($stream);
+        $this->assertNull($uuStream->getSize());
     }
-
+    
     public function testTell()
     {
         $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
@@ -114,11 +103,11 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
-        $stream = Psr7\stream_for(convert_uuencode($str));
-        $uuStream = new UUStreamDecorator($stream);
 
+        $stream = Psr7\stream_for(convert_uuencode($str));
         for ($i = 1; $i < strlen($str); ++$i) {
-            $uuStream->rewind();
+            $stream->rewind();
+            $uuStream = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
                 $this->assertEquals($j, $uuStream->tell(), "Tell at $j failed with $i step");
                 $uuStream->read($i);
@@ -127,25 +116,13 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testSeekCur()
+    public function testSeekUnsopported()
     {
-        $stream = Psr7\stream_for(convert_uuencode('test'));
-        $uuStream = new UUStreamDecorator($stream);
-        $this->assertEquals('te', $uuStream->read(2));
-        $uuStream->seek(-2, SEEK_CUR);
-        $this->assertEquals('te', $uuStream->read(2));
-        $uuStream->seek(1, SEEK_CUR);
-        $this->assertEquals('t', $uuStream->read(1));
-    }
-
-    public function testSeek()
-    {
-        $stream = Psr7\stream_for(convert_uuencode('0123456789'));
-        $uuStream = new UUStreamDecorator($stream);
-        $uuStream->seek(4);
-        $this->assertEquals('4', $uuStream->read(1));
-        $uuStream->seek(-1, SEEK_END);
-        $this->assertEquals('9', $uuStream->read(1));
+        $stream = Psr7\stream_for(quoted_printable_encode('Sweetest little pie'));
+        $test = new UUStream($stream);
+        $this->assertFalse($test->isSeekable());
+        $this->setExpectedException('RuntimeException');
+        $test->seek(0);
     }
 
     public function testReadWithBeginAndEnd()
@@ -164,7 +141,7 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
             $encoded = "begin 666 devil.txt\r\n\r\n" . $encoded . "\r\nend\r\n";
             
             $stream = Psr7\stream_for($encoded);
-            $uuStream = new UUStreamDecorator($stream);
+            $uuStream = new UUStream($stream);
             $this->assertEquals($substr, $uuStream->getContents());
         }
     }
@@ -173,30 +150,16 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
     {
         $encoded = './tests/_data/blueball.uu.txt';
         $org = './tests/_data/blueball.png';
-        $f = fopen($encoded, 'r');
-
-        $streamDecorator = new UUStreamDecorator(Psr7\stream_for($f));
-        $handle = StreamWrapper::getResource($streamDecorator);
-
-        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
-
-        fclose($handle);
-        fclose($f);
+        $stream = new UUStream(Psr7\stream_for(fopen($encoded, 'r')));
+        $this->assertEquals(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testDecodeFileWithSpaces()
     {
         $encoded = './tests/_data/blueball-2.uu.txt';
         $org = './tests/_data/blueball.png';
-        $f = fopen($encoded, 'r');
-
-        $streamDecorator = new UUStreamDecorator(Psr7\stream_for($f));
-        $handle = StreamWrapper::getResource($streamDecorator);
-
-        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
-
-        fclose($handle);
-        fclose($f);
+        $stream = new UUStream(Psr7\stream_for(fopen($encoded, 'r')));
+        $this->assertEquals(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testWrite()
@@ -205,21 +168,25 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
         $contents = file_get_contents($org);
 
         for ($i = 1; $i < strlen($contents); ++$i) {
-            $f = fopen('php://temp', 'r+');
-            $streamDecorator = new UUStreamDecorator(Psr7\stream_for($f));
+            $stream = Psr7\stream_for(fopen('php://temp', 'r+'));
+            $out = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($contents); $j += $i) {
-                $streamDecorator->write(substr($contents, $j, $i));
+                $out->write(substr($contents, $j, $i));
             }
-            $streamDecorator->rewind();
-            $this->assertEquals($contents, $streamDecorator->getContents());
-            rewind($f);
-            $raw = stream_get_contents($f);
+            $out->close();
+
+            $stream->rewind();
+            $in = new UUStream(new NonClosingStream($stream));
+            $this->assertEquals($contents, $in->getContents());
+            $in->close();
+
+            $stream->rewind();
+            $raw = $stream->getContents();
             $arr = explode("\r\n", $raw);
             $this->assertGreaterThan(0, count($arr));
             for ($x = 0; $x < count($arr); ++$x) {
                 $this->assertLessThanOrEqual(61, strlen($arr[$x]));
             }
-            fclose($f);
         }
     }
 
@@ -234,21 +201,24 @@ class UUStreamDecoratorTest extends PHPUnit_Framework_TestCase
 
         for ($i = 1; $i < strlen($contents); ++$i) {
             $str = substr($contents, 0, strlen($contents) - $i);
-            $f = fopen('php://temp', 'r+');
-            $streamDecorator = new UUStreamDecorator(Psr7\stream_for($f));
+            $stream = Psr7\stream_for(fopen('php://temp', 'r+'));
+            $out = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $streamDecorator->write(substr($str, $j, $i));
+                $out->write(substr($str, $j, $i));
             }
-            $streamDecorator->rewind();
-            $this->assertEquals($str, $streamDecorator->getContents());
-            rewind($f);
-            $raw = stream_get_contents($f);
+            $out->close();
+
+            $stream->rewind();
+            $in = new UUStream(new NonClosingStream($stream));
+            $this->assertEquals($str, $in->getContents());
+            $stream->rewind();
+
+            $raw = $stream->getContents();
             $arr = explode("\r\n", $raw);
             $this->assertGreaterThan(0, count($arr));
             for ($x = 0; $x < count($arr); ++$x) {
                 $this->assertLessThanOrEqual(61, strlen($arr[$x]));
             }
-            fclose($f);
         }
     }
 }

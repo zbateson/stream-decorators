@@ -41,7 +41,7 @@ while (($line = GuzzleHttp\Psr7\readline()) !== false) {
 The library consists of the following Psr\Http\Message\StreamInterface implementations:
 * ZBateson\StreamDecorators\QuotedPrintableStream
 * ZBateson\StreamDecorators\Base64Stream
-* ZBateson\StreamDecorators\UUStreamDecorator
+* ZBateson\StreamDecorators\UUStream
 * ZBateson\StreamDecorators\CharsetStream
 * ZBateson\StreamDecorators\NonClosingStream
 * ZBateson\StreamDecorators\ChunkSplitStream

@@ -7,12 +7,12 @@
 namespace ZBateson\StreamDecorators;
 
 use Psr\Http\Message\StreamInterface;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use GuzzleHttp\Psr7\BufferStream;
+use RuntimeException;
 
 /**
  * GuzzleHttp\Psr7 stream decoder extension for UU-Encoded streams.
- *
- * Extends AbstractMimeTransferStreamDecorator, which prevents getSize and
- * seeking to anywhere except the beginning (rewinding).
  *
  * The size of the underlying stream and the position of bytes can't be
  * determined because the number of encoded bytes is indeterminate without
@@ -20,22 +20,19 @@ use Psr\Http\Message\StreamInterface;
  *
  * @author Zaahid Bateson
  */
-class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
+class UUStream implements StreamInterface
 {
+    use StreamDecoratorTrait;
+
     /**
      * @var string name of the UUEncoded file
      */
     protected $filename = null;
 
     /**
-     * @var string string of buffered bytes
+     * @var BufferStream of read and decoded bytes
      */
-    private $buffer = '';
-
-    /**
-     * @var int number of bytes in $buffer
-     */
-    private $bufferLength = 0;
+    private $buffer;
 
     /**
      * @var string remainder of write operation if the bytes didn't align to 3
@@ -44,14 +41,14 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     private $remainder = '';
 
     /**
-     * @var boolean set to true when the UU header is written
+     * @var int read/write position
      */
-    private $headerWritten = false;
+    private $position = 0;
 
     /**
-     * @var boolean set to true when the UU footer is written
+     * @var boolean set to true when 'write' is called
      */
-    private $footerWritten = false;
+    private $isWriting = false;
 
     /**
      * @param StreamInterface $stream Stream to decorate
@@ -59,17 +56,51 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     public function __construct(StreamInterface $stream, $filename = null)
     {
-        parent::__construct($stream);
+        $this->stream = $stream;
         $this->filename = $filename;
+        $this->buffer = new BufferStream();
     }
 
     /**
-     * Resets the internal buffers.
+     * Overridden to return the position in the target encoding.
+     *
+     * @return int
      */
-    protected function beforeSeek() {
-        $this->bufferLength = 0;
-        $this->buffer = '';
-        $this->flush();
+    public function tell()
+    {
+        return $this->position;
+    }
+
+    /**
+     * Returns null, getSize isn't supported
+     *
+     * @return null
+     */
+    public function getSize()
+    {
+        return null;
+    }
+
+    /**
+     * Not supported.
+     *
+     * @param int $offset
+     * @param int $whence
+     * @throws RuntimeException
+     */
+    public function seek($offset, $whence = SEEK_SET)
+    {
+        throw new RuntimeException('Cannot seek a UUStream');
+    }
+
+    /**
+     * Overridden to return false
+     *
+     * @return boolean
+     */
+    public function isSeekable()
+    {
+        return false;
     }
 
     /**
@@ -80,12 +111,12 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function readToEndOfLine($length)
     {
-        $str = $this->readRaw($length);
+        $str = $this->stream->read($length);
         if ($str === false || $str === '') {
-            return '';
+            return $str;
         }
         while (substr($str, -1) !== "\n") {
-            $chr = $this->readRaw(1);
+            $chr = $this->stream->read(1);
             if ($chr === false || $chr === '') {
                 break;
             }
@@ -101,7 +132,7 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      * @param string $str
      * @return string
      */
-    private function filterEncodedString($str)
+    private function filterAndDecode($str)
     {
         $ret = str_replace("\r", '', $str);
         $ret = preg_replace('/[^\x21-\xf5`\n]/', '`', $ret);
@@ -110,65 +141,39 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
             if (preg_match('/^\s*begin\s+[^\s+]\s+([^\r\n]+)\s*$/im', $ret, $matches)) {
                 $this->filename = $matches[1];
             }
-            $ret = preg_replace('/^\s*begin[^\r\n]+\s*$|^\s*end\s*$/im', '', $ret);
+            $ret = preg_replace('/^\s*begin[^\r\n]+\s*$/im', '', $ret);
         } else {
             $ret = preg_replace('/^\s*end\s*$/im', '', $ret);
         }
-        return trim($ret);
+        return convert_uudecode(trim($ret));
     }
 
     /**
      * Buffers bytes into $this->buffer, removing uuencoding headers and footers
      * and decoding them.
      */
-    private function readRawBytesIntoBuffer()
+    private function fillBuffer($length)
     {
         // 5040 = 63 * 80, seems to be good balance for buffering in benchmarks
         // testing with a simple 'if ($length < x)' and calculating a better
         // size reduces speeds by up to 4x
-        $encoded = $this->filterEncodedString($this->readToEndOfLine(5040));
-        if ($encoded === '') {
-            $this->buffer = '';
-        } else {
-            $this->buffer = convert_uudecode($encoded);
-        }
-        $this->bufferLength = strlen($this->buffer);
-    }
-
-    /**
-     * Attempts to fill up to $length bytes of decoded bytes into $this->buffer,
-     * and returns them.
-     *
-     * @param int $length
-     * @return string
-     */
-    private function getDecodedBytes($length)
-    {
-        $data = $this->buffer;
-        $retLen = $this->bufferLength;
-        while ($retLen < $length) {
-            $this->readRawBytesIntoBuffer($length);
-            if ($this->bufferLength === 0) {
+        while ($this->buffer->getSize() < $length) {
+            $read = $this->readToEndOfLine(5040);
+            if ($read === false || $read === '') {
                 break;
             }
-            $retLen += $this->bufferLength;
-            $data .= $this->buffer;
+            $this->buffer->write($this->filterAndDecode($read));
         }
-        $ret = substr($data, 0, $length);
-        $this->buffer = substr($data, $length);
-        $this->bufferLength = strlen($this->buffer);
-        $this->position += strlen($ret);
-        return $ret;
     }
 
     /**
      * Returns true if the end of stream has been reached.
      *
-     * @return type
+     * @return boolean
      */
     public function eof()
     {
-        return ($this->bufferLength === 0 && parent::eof());
+        return ($this->buffer->eof() && $this->stream->eof());
     }
 
     /**
@@ -181,9 +186,12 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     {
         // let Guzzle decide what to do.
         if ($length <= 0 || $this->eof()) {
-            return $this->readRaw($length);
+            return $this->stream->read($length);
         }
-        return $this->getDecodedBytes($length);
+        $this->fillBuffer($length);
+        $read = $this->buffer->read($length);
+        $this->position += strlen($read);
+        return $read;
     }
 
     /**
@@ -192,8 +200,7 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     private function writeUUHeader()
     {
         $filename = (empty($this->filename)) ? 'null' : $this->filename;
-        $this->writeRaw("begin 666 $filename");
-        $this->headerWritten = true;
+        $this->stream->write("begin 666 $filename");
     }
 
     /**
@@ -201,7 +208,7 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      */
     private function writeUUFooter()
     {
-        $this->writeRaw("\r\n`\r\nend\r\n");
+        $this->stream->write("\r\n`\r\nend\r\n");
         $this->footerWritten = true;
     }
 
@@ -214,7 +221,27 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     {
         $encoded = preg_replace('/\r\n|\r|\n/', "\r\n", rtrim(convert_uuencode($bytes)));
         // removes ending '`' line
-        $this->writeRaw("\r\n" . rtrim(substr($encoded, 0, -1)));
+        $this->stream->write("\r\n" . rtrim(substr($encoded, 0, -1)));
+    }
+
+    /**
+     * Prepends any existing remainder to the passed string, then checks if the
+     * string fits into a uuencoded line, and removes and keeps any remainder
+     * from the string to write.  Full lines ready for writing are returned.
+     * 
+     * @param string $string
+     * @return string
+     */
+    private function handleRemainder($string)
+    {
+        $write = $this->remainder . $string;
+        $nRem = strlen($write) % 45;
+        $this->remainder = '';
+        if ($nRem !== 0) {
+            $this->remainder = substr($write, -$nRem);
+            $write = substr($write, 0, -$nRem);
+        }
+        return $write;
     }
 
     /**
@@ -223,48 +250,27 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
      * Note that reading and writing to the same stream without rewinding is not
      * supported.
      *
-     * Also note that some bytes may not be written until close, detach, seek or
-     * flush are called.  This happens if written data doesn't align to a
-     * complete uuencoded 'line' of 45 bytes.  In addition, the UU footer is
-     * only written when one of the mentioned methods are called.
+     * Also note that some bytes may not be written until close or detach are
+     * called.  This happens if written data doesn't align to a complete
+     * uuencoded 'line' of 45 bytes.  In addition, the UU footer is only written
+     * when closing or detaching as well.
      *
      * @param string $string
      * @return int the number of bytes written
      */
     public function write($string)
     {
+        $this->isWriting = true;
         if ($this->position === 0) {
             $this->writeUUHeader();
         }
-        $write = $this->remainder . $string;
-        $nRem = strlen($write) % 45;
-
-        $this->remainder = '';
-        if ($nRem !== 0) {
-            $this->remainder = substr($write, -$nRem);
-            $write = substr($write, 0, -$nRem);
-        }
+        $write = $this->handleRemainder($string);
         if ($write !== '') {
             $this->writeEncoded($write);
         }
         $written = strlen($string);
         $this->position += $written;
         return $written;
-    }
-
-    /**
-     * Writes out any remaining bytes to the underlying stream.
-     */
-    public function flush()
-    {
-        if ($this->remainder !== '') {
-            $this->writeEncoded($this->remainder);
-        }
-        $this->remainder = '';
-        if ($this->headerWritten && !$this->footerWritten) {
-            $this->writeUUFooter();
-        }
-        parent::flush();
     }
 
     /**
@@ -285,5 +291,41 @@ class UUStreamDecorator extends AbstractMimeTransferStreamDecorator
     public function setFilename($filename)
     {
         $this->filename = $filename;
+    }
+
+    /**
+     * Writes out any remaining bytes and the UU footer.
+     */
+    private function beforeClose()
+    {
+        if (!$this->isWriting) {
+            return;
+        }
+        if ($this->remainder !== '') {
+            $this->writeEncoded($this->remainder);
+        }
+        $this->remainder = '';
+        $this->isWriting = false;
+        $this->writeUUFooter();
+    }
+
+    /**
+     * Writes any remaining bytes out followed by the uu-encoded footer, then
+     * closes the stream.
+     */
+    public function close()
+    {
+        $this->beforeClose();
+        $this->stream->close();
+    }
+
+    /**
+     * Writes any remaining bytes out followed by the uu-encoded footer, then
+     * detaches the stream.
+     */
+    public function detach()
+    {
+        $this->beforeClose();
+        $this->stream->detach();
     }
 }
