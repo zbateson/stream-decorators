@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators\Util;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Description of CharsetConverterTest
@@ -10,7 +10,7 @@ use PHPUnit_Framework_TestCase;
  * @covers ZBateson\StreamDecorators\Util\CharsetConverter
  * @author Zaahid Bateson
  */
-class CharsetConverterTest extends PHPUnit_Framework_TestCase
+class CharsetConverterTest extends TestCase
 {
     public function testMbCharsetConversion()
     {
@@ -22,7 +22,7 @@ class CharsetConverterTest extends PHPUnit_Framework_TestCase
             $this->assertEquals($test, $converter->convert($converter->convert($test, $first, $dest), $dest, $first));
         }
     }
-    
+
     public function testIconvCharsetConversion()
     {
         $arr = array_unique(CharsetConverter::$iconvAliases);
@@ -47,19 +47,19 @@ class CharsetConverterTest extends PHPUnit_Framework_TestCase
         $cs = reset(CharsetConverter::$iconvAliases);
         $this->assertEmpty($converter->convert('', 'UTF-8', $cs));
     }
-    
+
     public function testMbIconvMixedCharsetConversion()
     {
         $mbArr = array_unique(CharsetConverter::$mbAliases);
         $iconvArr = array_unique(CharsetConverter::$iconvAliases);
         $converter = new CharsetConverter();
-        
+
         $mb = reset($mbArr);
         $iconv = reset($iconvArr);
-        
+
         $testMb = $converter->convert('This is my string', 'UTF-8', $mb);
         $testIconv = $converter->convert('This is my string', 'UTF-8', $iconv);
-        
+
         foreach ($iconvArr as $dest) {
             $this->assertEquals($testMb, $converter->convert($converter->convert($testMb, $mb, $dest), $dest, $mb));
         }
@@ -67,7 +67,7 @@ class CharsetConverterTest extends PHPUnit_Framework_TestCase
             $this->assertEquals($testIconv, $converter->convert($converter->convert($testIconv, $iconv, $dest), $dest, $iconv));
         }
     }
-    
+
     public function testSetCharsetConversions()
     {
         $arr = [

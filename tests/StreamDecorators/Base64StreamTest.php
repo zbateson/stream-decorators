@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
 
@@ -12,7 +12,7 @@ use GuzzleHttp\Psr7\StreamWrapper;
  * @covers ZBateson\StreamDecorators\Base64Stream
  * @author Zaahid Bateson
  */
-class Base64StreamTest extends PHPUnit_Framework_TestCase
+class Base64StreamTest extends TestCase
 {
     public function testReadContents()
     {
@@ -80,7 +80,7 @@ class Base64StreamTest extends PHPUnit_Framework_TestCase
         $encoded = './tests/_data/blueball.b64.txt';
         $org = './tests/_data/blueball.png';
         $f = fopen($encoded, 'r');
-        
+
         $streamDecorator = new Base64Stream(Psr7\stream_for($f));
         $handle = StreamWrapper::getResource($streamDecorator);
 
@@ -139,13 +139,15 @@ class Base64StreamTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @expectedException \RuntimeException
+     */
     public function testSeekUnsopported()
     {
         $str = 'Sweetest little pie';
         $stream = Psr7\stream_for(base64_encode($str));
         $test = new Base64Stream($stream);
         $this->assertFalse($test->isSeekable());
-        $this->setExpectedException('RuntimeException');
         $test->seek(0);
     }
 }

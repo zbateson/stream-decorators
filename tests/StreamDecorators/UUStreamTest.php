@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
 
@@ -12,7 +12,7 @@ use GuzzleHttp\Psr7\StreamWrapper;
  * @covers ZBateson\StreamDecorators\UUStream
  * @author Zaahid Bateson
  */
-class UUStreamTest extends PHPUnit_Framework_TestCase
+class UUStreamTest extends TestCase
 {
     public function testReadAndRewind()
     {
@@ -94,7 +94,7 @@ class UUStreamTest extends PHPUnit_Framework_TestCase
         $uuStream = new UUStream($stream);
         $this->assertNull($uuStream->getSize());
     }
-    
+
     public function testTell()
     {
         $str = 'é J\'interdis aux marchands de vanter trop leur marchandises. Car '
@@ -116,12 +116,14 @@ class UUStreamTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @expectedException \RuntimeException
+     */
     public function testSeekUnsopported()
     {
         $stream = Psr7\stream_for(quoted_printable_encode('Sweetest little pie'));
         $test = new UUStream($stream);
         $this->assertFalse($test->isSeekable());
-        $this->setExpectedException('RuntimeException');
         $test->seek(0);
     }
 
@@ -135,11 +137,11 @@ class UUStreamTest extends PHPUnit_Framework_TestCase
             . 'vulgaire.é';
         $str = str_repeat($str, 10);
         for ($i = 0; $i < strlen($str); ++$i) {
-            
+
             $substr = substr($str, 0, $i + 1);
             $encoded = convert_uuencode($substr);
             $encoded = "begin 666 devil.txt\r\n\r\n" . $encoded . "\r\nend\r\n";
-            
+
             $stream = Psr7\stream_for($encoded);
             $uuStream = new UUStream($stream);
             $this->assertEquals($substr, $uuStream->getContents());

@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 
 /**
@@ -11,7 +11,7 @@ use GuzzleHttp\Psr7;
  * @covers ZBateson\StreamDecorators\PregReplaceFilterStream
  * @author Zaahid Bateson
  */
-class PregReplaceFilterStreamTest extends PHPUnit_Framework_TestCase
+class PregReplaceFilterStreamTest extends TestCase
 {
     public function testRead()
     {
@@ -32,12 +32,14 @@ class PregReplaceFilterStreamTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @expectedException \RuntimeException
+     */
     public function testSeekUnsopported()
     {
         $stream = Psr7\stream_for('a-ll t-h-e k-ing\'s me-n');
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
         $this->assertFalse($test->isSeekable());
-        $this->setExpectedException('RuntimeException');
         $test->seek(0);
     }
 }
