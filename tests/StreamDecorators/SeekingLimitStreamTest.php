@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 
 /**
@@ -11,7 +11,7 @@ use GuzzleHttp\Psr7;
  * @covers ZBateson\StreamDecorators\SeekingLimitStream
  * @author Zaahid Bateson
  */
-class SeekingLimitStreamTest extends PHPUnit_Framework_TestCase
+class SeekingLimitStreamTest extends TestCase
 {
     public function testReadLimits()
     {

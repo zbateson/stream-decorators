@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 use ZBateson\StreamDecorators\Util\CharsetConverter;
 
@@ -12,7 +12,7 @@ use ZBateson\StreamDecorators\Util\CharsetConverter;
  * @covers ZBateson\StreamDecorators\CharsetStream
  * @author Zaahid Bateson
  */
-class CharsetStreamTest extends PHPUnit_Framework_TestCase
+class CharsetStreamTest extends TestCase
 {
     private $converter;
 
@@ -104,12 +104,14 @@ class CharsetStreamTest extends PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @expectedException \RuntimeException
+     */
     public function testSeekUnsopported()
     {
         $stream = Psr7\stream_for('Sweetest little pie');
         $test = new CharsetStream($stream);
         $this->assertFalse($test->isSeekable());
-        $this->setExpectedException('RuntimeException');
         $test->seek(0);
     }
 

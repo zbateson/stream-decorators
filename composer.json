@@ -16,12 +16,16 @@
         "guzzlehttp/psr7": "^1.0.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.5.0"
+        "phpunit/phpunit": "^4.8 || ^5.7 || ^6.5"
     },
     "autoload": {
-        "psr-4": {"ZBateson\\StreamDecorators\\": "src/"}
+        "psr-4": {
+            "ZBateson\\StreamDecorators\\": "src/"
+        }
     },
     "autoload-dev": {
-        "classmap": ["tests/StreamDecorators/"]
+        "psr-4": {
+            "ZBateson\\StreamDecorators\\": "tests/StreamDecorators"
+        }
     }
 }

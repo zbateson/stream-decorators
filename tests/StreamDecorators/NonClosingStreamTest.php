@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 
 /**
@@ -11,7 +11,7 @@ use GuzzleHttp\Psr7;
  * @covers ZBateson\StreamDecorators\NonClosingStream
  * @author Zaahid Bateson
  */
-class NonClosingStreamTest extends PHPUnit_Framework_TestCase
+class NonClosingStreamTest extends TestCase
 {
     public function testClose()
     {

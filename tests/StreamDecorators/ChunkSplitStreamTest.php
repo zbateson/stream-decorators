@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 
 /**
@@ -11,7 +11,7 @@ use GuzzleHttp\Psr7;
  * @covers ZBateson\StreamDecorators\ChunkSplitStream
  * @author Zaahid Bateson
  */
-class ChunkSplitStreamTest extends PHPUnit_Framework_TestCase
+class ChunkSplitStreamTest extends TestCase
 {
     public function testWrite()
     {
