@@ -2,18 +2,18 @@ language: php
 dist: trusty
 
 php:
-#    - 5.4
-#    - 5.5
-#    - 5.6
-#    - 7.0
-#    - 7.1
-#    - 7.2
+    - 5.4
+    - 5.5
+    - 5.6
+    - 7.0
+    - 7.1
+    - 7.2
     - hhvm
-#    - hhvm-3.6
-#    - hhvm-3.12
-#    - hhvm-3.24
+    - hhvm-3.6
+    - hhvm-3.12
+    - hhvm-3.24
     - hhvm-nightly
-#    - nightly
+    - nightly
 matrix:
     allow_failures:
         - php: nightly
