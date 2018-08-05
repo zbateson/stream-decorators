@@ -27,7 +27,7 @@ matrix:
         - php: nightly
 
 before_script:
-    - if [[ $PHPUNIT_VERSION != "" ]]; then composer require "phpunit/phpunit:$PHPUNIT_VERSION"; fi
+    - if [[ "$PHPUNIT_VERSION" != "" ]]; then composer require "phpunit/phpunit:$PHPUNIT_VERSION"; fi
     - composer update
 
 script: ./vendor/bin/phpunit -c tests/phpunit.xml
