@@ -7,7 +7,6 @@ php:
     - 7.0
     - 7.1
     - 7.2
-    - 7.3
     - hhvm
     - hhvm-3.6
     - hhvm-3.12
@@ -21,7 +20,6 @@ matrix:
         - php: hhvm-nightly
         env: PHPUNIT_VERSION=5.7
     allow_failures:
-        - php: 7.3
         - php: hhvm
         - php: hhvm-nightly
         - php: nightly
