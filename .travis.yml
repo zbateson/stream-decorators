@@ -14,18 +14,13 @@ php:
     - hhvm-nightly
     - nightly
 matrix:
-    include:
-        - php: hhvm
-        env: PHPUNIT_VERSION=5.7
-        - php: hhvm-nightly
-        env: PHPUNIT_VERSION=5.7
     allow_failures:
         - php: hhvm
         - php: hhvm-nightly
         - php: nightly
 
 before_script:
-    - if [[ "$PHPUNIT_VERSION" != "" ]]; then composer require "phpunit/phpunit:$PHPUNIT_VERSION"; fi
+    - if [[ "$TRAVIS_PHP_VERSION" == "hhvm" || "$TRAVIS_PHP_VERSION" == "hhvm-nightly" ]]; then composer require "phpunit/phpunit:5.7"; fi
     - composer update
 
 script: ./vendor/bin/phpunit -c tests/phpunit.xml
