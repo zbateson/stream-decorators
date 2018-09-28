@@ -3,8 +3,8 @@
 Psr7 stream decorators for character set conversion and common mail format content encodings.
 
 [![Build Status](https://travis-ci.org/zbateson/stream-decorators.svg?branch=master)](https://travis-ci.org/zbateson/stream-decorators)
-[![Code Coverage](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/?branch=master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/zbateson/StreamDecorators/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/zbateson/stream-decorators/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/zbateson/stream-decorators/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/zbateson/stream-decorators/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/zbateson/stream-decorators/?branch=master)
 [![Total Downloads](https://poser.pugx.org/zbateson/stream-decorators/downloads)](https://packagist.org/packages/zbateson/stream-decorators)
 [![Latest Stable Version](https://poser.pugx.org/zbateson/stream-decorators/version)](https://packagist.org/packages/zbateson/stream-decorators)
 
@@ -12,7 +12,6 @@ The goals of this project are to be:
 
 * Well written
 * Standards-compliant but forgiving
-* Includable via composer
 * Tested where possible
 
 To include it for use in your project, please install via composer:
