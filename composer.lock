@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "edd15fd049b1928079bfd5a1f08d70f2",
+    "content-hash": "e3e7c4d7515fbd454dd0211b9353df0e",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -241,7 +241,7 @@
         },
         {
             "name": "zbateson/mb-wrapper",
-            "version": "dev-master",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zbateson/mb-wrapper.git",
@@ -1762,9 +1762,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "zbateson/mb-wrapper": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
