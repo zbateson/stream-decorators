@@ -3,7 +3,7 @@ namespace ZBateson\StreamDecorators;
 
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
-use ZBateson\StreamDecorators\Util\CharsetConverter;
+use ZBateson\MbWrapper\MbWrapper;
 
 /**
  * Description of CharsetStreamTest
@@ -19,7 +19,7 @@ class CharsetStreamTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->converter = new CharsetConverter();
+        $this->converter = new MbWrapper();
     }
 
     public function testRead()

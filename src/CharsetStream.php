@@ -8,7 +8,7 @@ namespace ZBateson\StreamDecorators;
 
 use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use ZBateson\StreamDecorators\Util\CharsetConverter;
+use ZBateson\MbWrapper\MbWrapper;
 use RuntimeException;
 
 /**
@@ -21,7 +21,7 @@ class CharsetStream implements StreamInterface
     use StreamDecoratorTrait;
 
     /**
-     * @var CharsetConverter the charset converter
+     * @var MbWrapper the charset converter
      */
     protected $converter = null;
     
@@ -61,7 +61,7 @@ class CharsetStream implements StreamInterface
     public function __construct(StreamInterface $stream, $streamCharset = 'ISO-8859-1', $stringCharset = 'UTF-8')
     {
         $this->stream = $stream;
-        $this->converter = new CharsetConverter();
+        $this->converter = new MbWrapper();
         $this->streamCharset = $streamCharset;
         $this->stringCharset = $stringCharset;
     }

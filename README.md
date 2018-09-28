@@ -53,14 +53,6 @@ optionally takes a $lineLength argument (defaults to 76) and a $lineEnding argum
 PregReplaceFilterStream takes a $pattern argument and a $replacement argument.  SeekingLimitStream takes optional
 $limit and $offset parameters, similar to GuzzleHttp's LimitStream.
 
-In addition, the library exposes a ZBateson\StreamDecorators\Util\CharsetConverter class which provides the following:
-* a map of supported charsets with different names (aliases)
-* better charset lookup (by removing special chars during lookup, etc...) to catch more charsets that may be found in Content-Type headers
-* abstraction of the following mb_* and iconv functions, preferring mb_* for supported charsets:
-* mb_convert_encoding, iconv with CharsetConverter::convert
-* mb_substr, iconv_substr with CharsetConverter::getSubstr
-* mb_strlen, iconv_strlen with CharsetConverter::getLength
-
 ## License
 
 BSD licensed - please see [license agreement](https://github.com/zbateson/stream-decorators/blob/master/LICENSE).
