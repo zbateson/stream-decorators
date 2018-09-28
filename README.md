@@ -64,4 +64,4 @@ In addition, the library exposes a ZBateson\StreamDecorators\Util\CharsetConvert
 
 ## License
 
-BSD licensed - please see [license agreement](https://github.com/zbateson/StreamDecorator/blob/master/LICENSE).
+BSD licensed - please see [license agreement](https://github.com/zbateson/stream-decorators/blob/master/LICENSE).
