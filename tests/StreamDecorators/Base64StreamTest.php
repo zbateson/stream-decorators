@@ -81,7 +81,7 @@ class Base64StreamTest extends TestCase
         $org = './tests/_data/blueball.png';
         $f = fopen($encoded, 'r');
 
-        $streamDecorator = new Base64Stream(Psr7\stream_for($f));
+        $streamDecorator = new Base64Stream(new PregReplaceFilterStream(Psr7\stream_for($f), '/[^a-zA-Z0-9\/\+=]/', ''));
         $handle = StreamWrapper::getResource($streamDecorator);
 
         $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
@@ -90,28 +90,22 @@ class Base64StreamTest extends TestCase
         fclose($f);
     }
 
-    public function testDecodeWordFile()
+    public function testDecodeWordFileWithStreamGetContents()
     {
         $encoded = './tests/_data/test.b64.txt';
         $org = './tests/_data/test.doc';
         $f = fopen($encoded, 'r');
 
-        $streamDecorator = new Base64Stream(Psr7\stream_for($f));
-        //$handle = StreamWrapper::getResource($streamDecorator);
+        $streamDecorator = new Base64Stream(new PregReplaceFilterStream(Psr7\stream_for($f), '/[^a-zA-Z0-9\/\+=]/', ''));
+        $handle = StreamWrapper::getResource($streamDecorator);
 
-        $offset = 0;
         $horg = fopen($org, 'r');
-        while (!$streamDecorator->eof()) {
-            $this->assertEquals(
-                fread($horg, 50),
-                $streamDecorator->read(50),
-                'Decoded test.doc not equal to original file while reading 50 bytes at offset ' . $offset
-           );
-            $offset += 50;
-        }
+        $this->assertTrue(
+            stream_get_contents($handle) === stream_get_contents($horg)
+        );
 
         fclose($horg);
-        //fclose($handle);
+        fclose($handle);
         fclose($f);
     }
 
