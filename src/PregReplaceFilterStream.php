@@ -47,6 +47,16 @@ class PregReplaceFilterStream implements StreamInterface
     }
 
     /**
+     * Returns true if the end of stream has been reached.
+     *
+     * @return boolean
+     */
+    public function eof()
+    {
+        return ($this->buffer->eof() && $this->stream->eof());
+    }
+
+    /**
      * Not supported by PregReplaceFilterStream
      *
      * @param int $offset
