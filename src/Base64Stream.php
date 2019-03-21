@@ -14,6 +14,29 @@ use RuntimeException;
 /**
  * GuzzleHttp\Psr7 stream decoder extension for base64 streams.
  *
+ * Note that it's expected the underlying stream will only contain valid base64
+ * characters (normally the stream should be wrapped in a
+ * PregReplaceFilterStream to filter out non-base64 characters for reading).
+ *
+ * ```
+ * $f = fopen(...);
+ * $stream = new Base64Stream(new PregReplaceFilterStream(
+ *      Psr7\stream_for($f), '/[^a-zA-Z0-9\/\+=]/', ''
+ * ));
+ * //...
+ * ```
+ *
+ * For writing, a ChunkSplitStream could come in handy so the output is split
+ * into lines:
+ *
+ * ```
+ * $f = fopen(...);
+ * $stream = new Base64Stream(new ChunkSplitStream(new PregReplaceFilterStream(
+ *      Psr7\stream_for($f), '/[^a-zA-Z0-9\/\+=]/', ''
+ * )));
+ * //...
+ * ```
+ *
  * @author Zaahid Bateson
  */
 class Base64Stream implements StreamInterface
@@ -100,29 +123,12 @@ class Base64Stream implements StreamInterface
     }
 
     /**
-     * Checks if the passed bytes contain a multiple of four valid base64 bytes
-     * after stripping invalid characters, and reads as many additional bytes as
-     * needed until a multiple of four or the end of stream is reached.
-     * 
-     * @param string $bytes
-     * @return string
-     */
-    private function readToBase64Offset($bytes)
-    {
-        $raw = preg_replace('~[^A-Za-z0-9\+/\=]+~', '', $bytes);
-        while (strlen($raw) % 4 !== 0) {
-            $b = $this->stream->read(1);
-            if ($b === false || $b === '') {
-                return $raw;
-            }
-            $raw .= preg_replace('~[^A-Za-z0-9\+/\=]+~', '', $b);
-        }
-        return $raw;
-    }
-
-    /**
      * Fills the internal byte buffer after reading and decoding data from the
      * underlying stream.
+     *
+     * Note that it's expected the underlying stream will only contain valid
+     * base64 characters (normally the stream should be wrapped in a
+     * PregReplaceFilterStream to filter out non-base64 characters).
      *
      * @param int $length
      */
@@ -134,8 +140,7 @@ class Base64Stream implements StreamInterface
             if ($read === false || $read === '') {
                 break;
             }
-            $decoded = base64_decode($this->readToBase64Offset($read));
-            $this->buffer->write($decoded);
+            $this->buffer->write(base64_decode($read));
         }
     }
 
