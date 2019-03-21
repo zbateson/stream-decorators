@@ -100,6 +100,27 @@ class Base64Stream implements StreamInterface
     }
 
     /**
+     * Checks if the passed bytes contain a multiple of four valid base64 bytes
+     * after stripping invalid characters, and reads as many additional bytes as
+     * needed until a multiple of four or the end of stream is reached.
+     * 
+     * @param string $bytes
+     * @return string
+     */
+    private function readToBase64Offset($bytes)
+    {
+        $raw = preg_replace('~[^A-Za-z0-9\+/\=]+~', '', $bytes);
+        while (strlen($raw) % 4 !== 0) {
+            $b = $this->stream->read(1);
+            if ($b === false || $b === '') {
+                return $raw;
+            }
+            $raw .= preg_replace('~[^A-Za-z0-9\+/\=]+~', '', $b);
+        }
+        return $raw;
+    }
+
+    /**
      * Fills the internal byte buffer after reading and decoding data from the
      * underlying stream.
      *
@@ -109,11 +130,12 @@ class Base64Stream implements StreamInterface
     {
         $fill = 8192;
         while ($this->buffer->getSize() < $length) {
-            $read = base64_decode($this->stream->read($fill));
+            $read = $this->stream->read($fill);
             if ($read === false || $read === '') {
                 break;
             }
-            $this->buffer->write($read);
+            $decoded = base64_decode($this->readToBase64Offset($read));
+            $this->buffer->write($decoded);
         }
     }
 
