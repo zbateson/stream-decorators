@@ -110,13 +110,17 @@ class CharsetStream implements StreamInterface
 
     /**
      * Reads a minimum of $length characters from the underlying stream in its
-     * encoding into $this->buffer
+     * encoding into $this->buffer.
+     *
+     * Aligning to 4 bytes seemed to solve an issue reading from UTF-16LE
+     * streams and pass testReadUtf16LeToEof, although the buffered string
+     * should've solved that on its own.
      *
      * @param int $length
      */
     private function readRawCharsIntoBuffer($length)
     {
-        $n = $length + 32;
+        $n = ceil(($length + 32) / 4.0) * 4;
         while ($this->bufferLength < $n) {
             $raw = $this->stream->read($n + 512);
             if ($raw === false || $raw === '') {
@@ -138,7 +142,7 @@ class CharsetStream implements StreamInterface
     }
 
     /**
-     * Reads up to $length decoded bytes from the underlying stream and returns
+     * Reads up to $length decoded chars from the underlying stream and returns
      * them after converting to the target string charset.
      *
      * @param int $length

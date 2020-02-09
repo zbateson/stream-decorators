@@ -3,6 +3,7 @@ namespace ZBateson\StreamDecorators;
 
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\StreamWrapper;
 use ZBateson\MbWrapper\MbWrapper;
 
 /**
@@ -57,6 +58,20 @@ class CharsetStreamTest extends TestCase
             $substr = mb_substr($str, $i, null, 'UTF-8');
             $stream = Psr7\stream_for($this->converter->convert($substr, 'UTF-8', 'WINDOWS-1256'));
             $csStream = new CharsetStream($stream, 'WINDOWS-1256', 'UTF-8');
+            for ($j = 0; !$csStream->eof(); ++$j) {
+                $read = $csStream->read(1);
+                $this->assertEquals(mb_substr($substr, $j, 1, 'UTF-8'), $read, "Failed reading to EOF on substr $i iteration $j");
+            }
+        }
+    }
+
+    public function testReadUtf16LeToEof()
+    {
+        $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
+        for ($i = 0; $i < mb_strlen($str, 'UTF-8'); ++$i) {
+            $substr = mb_substr($str, $i, null, 'UTF-8');
+            $stream = Psr7\stream_for($this->converter->convert($substr, 'UTF-8', 'UTF-16LE'));
+            $csStream = new CharsetStream($stream, 'UTF-16LE', 'UTF-8');
             for ($j = 0; !$csStream->eof(); ++$j) {
                 $read = $csStream->read(1);
                 $this->assertEquals(mb_substr($substr, $j, 1, 'UTF-8'), $read, "Failed reading to EOF on substr $i iteration $j");

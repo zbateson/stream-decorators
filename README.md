@@ -40,6 +40,12 @@ while (($line = GuzzleHttp\Psr7\readline()) !== false) {
 
 ```
 
+Note that CharsetStream, depending on the target encoding, may return multiple bytes when a single 'char' is read.  If using php's 'fread', this will result in a warning:
+
+'read x bytes more data than requested (xxxx read, xxxx max) - excess data will be lost
+
+This is because the parameter to 'fread' is bytes, and so when CharsetStream returns, say, 4 bytes representing a single UTF-32 character, fread will truncate to the first byte when requesting '1' byte.  It is recommended to **not** convert to a stream handle (with StreamWrapper) for this reason when using CharsetStream.
+
 The library consists of the following Psr\Http\Message\StreamInterface implementations:
 * ZBateson\StreamDecorators\QuotedPrintableStream - decodes on read and encodes on write to quoted-printable
 * ZBateson\StreamDecorators\Base64Stream - decodes on read and encodes on write to base64
