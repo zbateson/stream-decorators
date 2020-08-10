@@ -77,13 +77,14 @@ class QuotedPrintableStreamTest extends TestCase
             . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
-            . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
+            . 'musique est vulgaire ils te fabriquent pour' . "\n" . 'te la vendre une âme '
             . 'vulgaire.';
         $encoded = "J'interdis aux marchands de vanter trop leur marchandises. Car ils se font =\r\n"
             . "vite p=C3=A9dagogues et t'enseignent comme but ce qui n'est par essence qu'=\r\n"
             . "un moyen, et te trompant ainsi sur la route =C3=A0 suivre les voil=C3=A0 bi=\r"
             . "ent=C3=B4t qui te d=C3=A9gradent, car si leur musique est vulgaire ils te f=\n"
-            . "abriquent pour te la vendre une =C3=A2me vulgaire.";
+            . "abriquent pour=\n\n"
+            . "te la vendre une =C3=A2me vulgaire.=\n";
         $stream = Psr7\stream_for($encoded);
         for ($i = 1; $i < strlen($str); ++$i) {
             $stream->rewind();

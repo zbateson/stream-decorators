@@ -90,7 +90,7 @@ class QuotedPrintableStream implements StreamInterface
     {
         $str = $pre . $this->stream->read($length);
         $len = strlen($str);
-        if ($len > 0 && !preg_match('/^[0-9a-f]{2}$|^[\r\n].$/is', $str) && $this->stream->isSeekable()) {
+        if ($len > 0 && !preg_match('/^[0-9a-f]{2}$|^[\r\n]{1,2}.?$/is', $str) && $this->stream->isSeekable()) {
             $this->stream->seek(-$len, SEEK_CUR);
             return '3D';    // '=' character
         }
@@ -146,7 +146,7 @@ class QuotedPrintableStream implements StreamInterface
     /**
      * Reads up to $length decoded bytes from the underlying quoted-printable
      * encoded stream and returns them.
-     * 
+     *
      * @param int $length
      * @return string
      */
