@@ -17,7 +17,7 @@ class CharsetStreamTest extends TestCase
 {
     private $converter;
 
-    public function setUp()
+    protected function setUp()
     {
         parent::setUp();
         $this->converter = new MbWrapper();
