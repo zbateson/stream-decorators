@@ -100,9 +100,7 @@ class Base64StreamTest extends TestCase
         $handle = StreamWrapper::getResource($streamDecorator);
 
         $horg = fopen($org, 'r');
-        $this->assertTrue(
-            stream_get_contents($handle) === stream_get_contents($horg)
-        );
+        $this->assertSame(stream_get_contents($horg), stream_get_contents($handle));
 
         fclose($horg);
         fclose($handle);
