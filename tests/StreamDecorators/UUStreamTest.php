@@ -4,6 +4,7 @@ namespace ZBateson\StreamDecorators;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
+use RuntimeException;
 
 /**
  * Description of UUStreamTest
@@ -116,15 +117,18 @@ class UUStreamTest extends TestCase
         }
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testSeekUnsopported()
     {
         $stream = Psr7\stream_for(quoted_printable_encode('Sweetest little pie'));
         $test = new UUStream($stream);
         $this->assertFalse($test->isSeekable());
-        $test->seek(0);
+        $exceptionThrown = false;
+        try {
+            $test->seek(0);
+        } catch (RuntimeException $exc) {
+            $exceptionThrown = true;
+        }
+        $this->assertTrue($exceptionThrown);
     }
 
     public function testReadWithBeginAndEnd()

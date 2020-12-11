@@ -1,10 +1,11 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit\Framework\TestCase;
+use LegacyPHPUnit\TestCase;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
 use ZBateson\MbWrapper\MbWrapper;
+use RuntimeException;
 
 /**
  * Description of CharsetStreamTest
@@ -17,9 +18,8 @@ class CharsetStreamTest extends TestCase
 {
     private $converter;
 
-    protected function setUp()
+    protected function legacySetUp()
     {
-        parent::setUp();
         $this->converter = new MbWrapper();
     }
 
@@ -119,15 +119,18 @@ class CharsetStreamTest extends TestCase
         }
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testSeekUnsopported()
     {
         $stream = Psr7\stream_for('Sweetest little pie');
         $test = new CharsetStream($stream);
         $this->assertFalse($test->isSeekable());
-        $test->seek(0);
+        $exceptionThrown = false;
+        try {
+            $test->seek(0);
+        } catch (RuntimeException $exc) {
+            $exceptionThrown = true;
+        }
+        $this->assertTrue($exceptionThrown);
     }
 
     public function testWrite()

@@ -1,7 +1,7 @@
 <?php
 namespace ZBateson\StreamDecorators;
 
-use PHPUnit\Framework\TestCase;
+use LegacyPHPUnit\TestCase;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
