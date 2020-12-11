@@ -22,7 +22,7 @@ composer require zbateson/stream-decorators
 
 ## Requirements
 
-StreamDecorators requires PHP 5.4 or newer.  Tested on PHP 5.4, 5.5, 5.6, 7, 7.1, 7.2 and 7.3 on travis.
+StreamDecorators requires PHP 5.4 or newer.  Tested on PHP 5.4, 5.5, 5.6, 7, 7.1, 7.2, 7.3, 7.4 and 8.0 on travis.
 
 Please note: hhvm support has been dropped as it no longer supports 'php' as of version 4.  Previous versions of hhvm may still work, but are no longer supported.
 
