@@ -21,7 +21,7 @@ use RuntimeException;
  * ```
  * $f = fopen(...);
  * $stream = new Base64Stream(new PregReplaceFilterStream(
- *      Psr7\stream_for($f), '/[^a-zA-Z0-9\/\+=]/', ''
+ *      Psr7\Utils::streamFor($f), '/[^a-zA-Z0-9\/\+=]/', ''
  * ));
  * //...
  * ```
@@ -32,7 +32,7 @@ use RuntimeException;
  * ```
  * $f = fopen(...);
  * $stream = new Base64Stream(new ChunkSplitStream(new PregReplaceFilterStream(
- *      Psr7\stream_for($f), '/[^a-zA-Z0-9\/\+=]/', ''
+ *      Psr7\Utils::streamFor($f), '/[^a-zA-Z0-9\/\+=]/', ''
  * )));
  * //...
  * ```

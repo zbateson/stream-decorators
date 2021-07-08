@@ -15,7 +15,7 @@ class ChunkSplitStreamTest extends TestCase
 {
     public function testWrite()
     {
-        $stream = Psr7\stream_for('');
+        $stream = Psr7\Utils::streamFor('');
 
         $out = new ChunkSplitStream(new NonClosingStream($stream), 10, '|');
         $out->write(str_repeat('a', 5));
@@ -41,7 +41,7 @@ class ChunkSplitStreamTest extends TestCase
 
     public function testWriteLineEndingAtBoundary()
     {
-        $stream = Psr7\stream_for('');
+        $stream = Psr7\Utils::streamFor('');
 
         $out = new ChunkSplitStream(new NonClosingStream($stream), 10, '|');
         for ($i = 0; $i < 20; ++$i) {

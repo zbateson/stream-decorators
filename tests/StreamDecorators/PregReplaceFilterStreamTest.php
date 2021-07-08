@@ -16,7 +16,7 @@ class PregReplaceFilterStreamTest extends TestCase
 {
     public function testRead()
     {
-        $stream = Psr7\stream_for('a-ll t-h-e k-ing\'s me-n');
+        $stream = Psr7\Utils::streamFor('a-ll t-h-e k-ing\'s me-n');
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
         $this->assertEquals('all the king\'s men', $test->getContents());
     }
@@ -25,7 +25,7 @@ class PregReplaceFilterStreamTest extends TestCase
     {
         $str = str_repeat('All the King\'s Men ', 8000);
         $filter = str_repeat('A-l-l t-h-e K-in-g\'s M-en ', 8000);
-        $stream = Psr7\stream_for($filter);
+        $stream = Psr7\Utils::streamFor($filter);
 
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
         for ($i = 0; $i < strlen($str); $i += 10) {
@@ -35,7 +35,7 @@ class PregReplaceFilterStreamTest extends TestCase
 
     public function testSeekUnsopported()
     {
-        $stream = Psr7\stream_for('a-ll t-h-e k-ing\'s me-n');
+        $stream = Psr7\Utils::streamFor('a-ll t-h-e k-ing\'s me-n');
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
         $this->assertFalse($test->isSeekable());
         $exceptionThrown = false;

@@ -27,7 +27,7 @@ class CharsetStreamTest extends TestCase
     {
         $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 50);
 
-        $stream = Psr7\stream_for($this->converter->convert($str, 'UTF-8', 'UTF-32'));
+        $stream = Psr7\Utils::streamFor($this->converter->convert($str, 'UTF-8', 'UTF-32'));
         for ($i = 1; $i < mb_strlen($str, 'UTF-8'); ++$i) {
             $stream->rewind();
             $csStream = new CharsetStream(new NonClosingStream($stream), 'UTF-32', 'UTF-8');
@@ -45,7 +45,7 @@ class CharsetStreamTest extends TestCase
 
         for ($i = 0; $i < mb_strlen($str); ++$i) {
             $substr = mb_substr($str, 0, $i + 1, 'UTF-8');
-            $stream = Psr7\stream_for($this->converter->convert($substr, 'UTF-8', 'UTF-16'));
+            $stream = Psr7\Utils::streamFor($this->converter->convert($substr, 'UTF-8', 'UTF-16'));
             $csStream = new CharsetStream($stream, 'UTF-16', 'UTF-8');
             $this->assertEquals($substr, $csStream->getContents());
         }
@@ -56,7 +56,7 @@ class CharsetStreamTest extends TestCase
         $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
         for ($i = 0; $i < mb_strlen($str, 'UTF-8'); ++$i) {
             $substr = mb_substr($str, $i, null, 'UTF-8');
-            $stream = Psr7\stream_for($this->converter->convert($substr, 'UTF-8', 'WINDOWS-1256'));
+            $stream = Psr7\Utils::streamFor($this->converter->convert($substr, 'UTF-8', 'WINDOWS-1256'));
             $csStream = new CharsetStream($stream, 'WINDOWS-1256', 'UTF-8');
             for ($j = 0; !$csStream->eof(); ++$j) {
                 $read = $csStream->read(1);
@@ -70,7 +70,7 @@ class CharsetStreamTest extends TestCase
         $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
         for ($i = 0; $i < mb_strlen($str, 'UTF-8'); ++$i) {
             $substr = mb_substr($str, $i, null, 'UTF-8');
-            $stream = Psr7\stream_for($this->converter->convert($substr, 'UTF-8', 'UTF-16LE'));
+            $stream = Psr7\Utils::streamFor($this->converter->convert($substr, 'UTF-8', 'UTF-16LE'));
             $csStream = new CharsetStream($stream, 'UTF-16LE', 'UTF-8');
             for ($j = 0; !$csStream->eof(); ++$j) {
                 $read = $csStream->read(1);
@@ -82,7 +82,7 @@ class CharsetStreamTest extends TestCase
     public function testReadToEmpty()
     {
         $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
-        $stream = Psr7\stream_for($this->converter->convert($str, 'UTF-8', 'WINDOWS-1256'));
+        $stream = Psr7\Utils::streamFor($this->converter->convert($str, 'UTF-8', 'WINDOWS-1256'));
         $csStream = new CharsetStream($stream, 'WINDOWS-1256', 'UTF-8');
         $i = 0;
         while (($chr = $csStream->read(1)) !== '') {
@@ -93,7 +93,7 @@ class CharsetStreamTest extends TestCase
     public function testGetSize()
     {
         $str = 'Sweetest little pie';
-        $stream = Psr7\stream_for($this->converter->convert($str, 'UTF-8', 'UTF-16'));
+        $stream = Psr7\Utils::streamFor($this->converter->convert($str, 'UTF-8', 'UTF-16'));
         $csStream = new CharsetStream($stream, 'UTF-16', 'UTF-8');
         $this->assertNull($csStream->getSize());
     }
@@ -106,7 +106,7 @@ class CharsetStreamTest extends TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
-        $stream = Psr7\stream_for($str);
+        $stream = Psr7\Utils::streamFor($str);
 
         for ($i = 1; $i < strlen($str); ++$i) {
             $stream->rewind();
@@ -121,7 +121,7 @@ class CharsetStreamTest extends TestCase
 
     public function testSeekUnsopported()
     {
-        $stream = Psr7\stream_for('Sweetest little pie');
+        $stream = Psr7\Utils::streamFor('Sweetest little pie');
         $test = new CharsetStream($stream);
         $this->assertFalse($test->isSeekable());
         $exceptionThrown = false;
@@ -137,7 +137,7 @@ class CharsetStreamTest extends TestCase
     {
         $str = str_repeat('هلا هلا شخبار بعد؟ شلون تبرمج؟', 10);
         for ($i = 1; $i < mb_strlen($str); ++$i) {
-            $stream = Psr7\stream_for(fopen('php://temp', 'r+'));
+            $stream = Psr7\Utils::streamFor(fopen('php://temp', 'r+'));
             $oStream = new CharsetStream(new NonClosingStream($stream), 'UTF-32', 'UTF-8');
             for ($j = 0; $j < mb_strlen($str, 'UTF-8'); $j += $i) {
                 $oStream->write(mb_substr($str, $j, $i, 'UTF-8'));

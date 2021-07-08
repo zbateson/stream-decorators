@@ -27,7 +27,7 @@ StreamDecorators requires PHP 5.4 or newer.  Tested on PHP 5.4, 5.5, 5.6, 7, 7.1
 ## Usage
 
 ```php
-$stream = GuzzleHttp\Psr7\stream_for($handle);
+$stream = GuzzleHttp\Psr7\Utils::streamFor($handle);
 $b64Stream = new ZBateson\StreamDecorators\Base64Stream($stream);
 $charsetStream = new ZBateson\StreamDecorators\CharsetStream($b64Stream, 'UTF-32', 'UTF-8');
 
