@@ -32,9 +32,9 @@ class QuotedPrintableStreamTest extends TestCase
             $stream->rewind();
             $qpStream = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals(substr($str, $j, $i), $qpStream->read($i), "Read $j failed at $i step");
+                $this->assertSame(substr($str, $j, $i), $qpStream->read($i), "Read $j failed at $i step");
             }
-            $this->assertEquals(strlen($str), $qpStream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $qpStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -50,7 +50,7 @@ class QuotedPrintableStreamTest extends TestCase
             $substr = substr($str, 0, $i + 1);
             $stream = Psr7\Utils::streamFor(quoted_printable_encode($substr));
             $qpStream = new QuotedPrintableStream($stream);
-            $this->assertEquals($substr, $qpStream->getContents());
+            $this->assertSame($substr, $qpStream->getContents());
         }
     }
 
@@ -67,7 +67,7 @@ class QuotedPrintableStreamTest extends TestCase
             $stream = Psr7\Utils::streamFor(quoted_printable_encode($substr));
             $qpStream = new QuotedPrintableStream($stream);
             for ($j = 0; !$qpStream->eof(); ++$j) {
-                $this->assertEquals(substr($substr, $j, 1), $qpStream->read(1), "Failed reading to EOF on substr $i iteration $j");
+                $this->assertSame(substr($substr, $j, 1), $qpStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }
@@ -91,9 +91,9 @@ class QuotedPrintableStreamTest extends TestCase
             $stream->rewind();
             $qpStream = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals(substr($str, $j, $i), $qpStream->read($i), "Read $j failed at $i step");
+                $this->assertSame(substr($str, $j, $i), $qpStream->read($i), "Read $j failed at $i step");
             }
-            $this->assertEquals(strlen($str), $qpStream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $qpStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -118,10 +118,10 @@ class QuotedPrintableStreamTest extends TestCase
             $stream->rewind();
             $qpStream = new QuotedPrintableStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals($j, $qpStream->tell(), "Tell at $j failed with $i step");
+                $this->assertSame($j, $qpStream->tell(), "Tell at $j failed with $i step");
                 $qpStream->read($i);
             }
-            $this->assertEquals(strlen($str), $qpStream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $qpStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -130,21 +130,21 @@ class QuotedPrintableStreamTest extends TestCase
         $encoded = "=";
         $stream = Psr7\Utils::streamFor($encoded);
         $qpStream = new QuotedPrintableStream($stream);
-        $this->assertEquals('', $qpStream->getContents());
+        $this->assertSame('', $qpStream->getContents());
 
         $encoded = "= ";
         $stream = Psr7\Utils::streamFor($encoded);
         $qpStream = new QuotedPrintableStream($stream);
-        $this->assertEquals('= ', $qpStream->getContents());
+        $this->assertSame('= ', $qpStream->getContents());
 
         $encoded = "=asdf";
         $stream = Psr7\Utils::streamFor($encoded);
         $qpStream = new QuotedPrintableStream($stream);
-        $this->assertEquals('=', $qpStream->read(1));
-        $this->assertEquals('a', $qpStream->read(1));
-        $this->assertEquals('s', $qpStream->read(1));
-        $this->assertEquals('d', $qpStream->read(1));
-        $this->assertEquals('f', $qpStream->read(1));
+        $this->assertSame('=', $qpStream->read(1));
+        $this->assertSame('a', $qpStream->read(1));
+        $this->assertSame('s', $qpStream->read(1));
+        $this->assertSame('d', $qpStream->read(1));
+        $this->assertSame('f', $qpStream->read(1));
     }
 
     public function testDecodeFile()
@@ -154,7 +154,7 @@ class QuotedPrintableStreamTest extends TestCase
         $f = fopen($encoded, 'r');
 
         $stream = new QuotedPrintableStream(Psr7\Utils::streamFor($f));
-        $this->assertEquals(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
+        $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testWrite()
@@ -176,7 +176,7 @@ class QuotedPrintableStreamTest extends TestCase
 
             $stream->rewind();
             $in = new QuotedPrintableStream(new NonClosingStream($stream));
-            $this->assertEquals($contents, rtrim($in->getContents()));
+            $this->assertSame($contents, rtrim($in->getContents()));
 
             $stream->rewind();
             $raw = $stream->getContents();

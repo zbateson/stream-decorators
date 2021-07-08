@@ -28,9 +28,9 @@ class UUStreamTest extends TestCase
             $stream->rewind();
             $uuStream = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
+                $this->assertSame(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
             }
-            $this->assertEquals(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -49,9 +49,9 @@ class UUStreamTest extends TestCase
             $stream->rewind();
             $uuStream = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
+                $this->assertSame(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
             }
-            $this->assertEquals(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -67,7 +67,7 @@ class UUStreamTest extends TestCase
             $substr = substr($str, 0, $i + 1);
             $stream = Psr7\Utils::streamFor(convert_uuencode($substr));
             $uuStream = new UUStream($stream);
-            $this->assertEquals($substr, $uuStream->getContents());
+            $this->assertSame($substr, $uuStream->getContents());
         }
     }
 
@@ -83,7 +83,7 @@ class UUStreamTest extends TestCase
             $stream = Psr7\Utils::streamFor(convert_uuencode(substr($str, $i)));
             $uuStream = new UUStream($stream);
             for ($j = $i; !$uuStream->eof(); ++$j) {
-                $this->assertEquals(substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr $i iteration $j");
+                $this->assertSame(substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }
@@ -110,10 +110,10 @@ class UUStreamTest extends TestCase
             $stream->rewind();
             $uuStream = new UUStream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals($j, $uuStream->tell(), "Tell at $j failed with $i step");
+                $this->assertSame($j, $uuStream->tell(), "Tell at $j failed with $i step");
                 $uuStream->read($i);
             }
-            $this->assertEquals(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -148,7 +148,7 @@ class UUStreamTest extends TestCase
 
             $stream = Psr7\Utils::streamFor($encoded);
             $uuStream = new UUStream($stream);
-            $this->assertEquals($substr, $uuStream->getContents());
+            $this->assertSame($substr, $uuStream->getContents());
         }
     }
 
@@ -157,7 +157,7 @@ class UUStreamTest extends TestCase
         $encoded = './tests/_data/blueball.uu.txt';
         $org = './tests/_data/blueball.png';
         $stream = new UUStream(Psr7\Utils::streamFor(fopen($encoded, 'r')));
-        $this->assertEquals(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
+        $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testDecodeFileWithSpaces()
@@ -165,7 +165,7 @@ class UUStreamTest extends TestCase
         $encoded = './tests/_data/blueball-2.uu.txt';
         $org = './tests/_data/blueball.png';
         $stream = new UUStream(Psr7\Utils::streamFor(fopen($encoded, 'r')));
-        $this->assertEquals(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
+        $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testWrite()
@@ -183,7 +183,7 @@ class UUStreamTest extends TestCase
 
             $stream->rewind();
             $in = new UUStream(new NonClosingStream($stream));
-            $this->assertEquals($contents, $in->getContents());
+            $this->assertSame($contents, $in->getContents());
             $in->close();
 
             $stream->rewind();
@@ -216,7 +216,7 @@ class UUStreamTest extends TestCase
 
             $stream->rewind();
             $in = new UUStream(new NonClosingStream($stream));
-            $this->assertEquals($str, $in->getContents());
+            $this->assertSame($str, $in->getContents());
             $stream->rewind();
 
             $raw = $stream->getContents();

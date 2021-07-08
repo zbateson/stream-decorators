@@ -27,7 +27,7 @@ class Base64StreamTest extends TestCase
             $substr = substr($str, 0, $i + 1);
             $stream = Psr7\Utils::streamFor(base64_encode($substr));
             $b64Stream = new Base64Stream($stream);
-            $this->assertEquals($substr, $b64Stream->getContents());
+            $this->assertSame($substr, $b64Stream->getContents());
         }
     }
 
@@ -43,7 +43,7 @@ class Base64StreamTest extends TestCase
             $stream = Psr7\Utils::streamFor(base64_encode(substr($str, $i)));
             $b64Stream = new Base64Stream($stream);
             for ($j = $i; !$b64Stream->eof(); ++$j) {
-                $this->assertEquals(substr($str, $j, 1), $b64Stream->read(1), "Failed reading to EOF on substr $i iteration $j");
+                $this->assertSame(substr($str, $j, 1), $b64Stream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }
@@ -69,10 +69,10 @@ class Base64StreamTest extends TestCase
             $stream->rewind();
             $b64Stream = new Base64Stream(new NonClosingStream($stream));
             for ($j = 0; $j < strlen($str); $j += $i) {
-                $this->assertEquals($j, $b64Stream->tell(), "Tell at $j failed with $i step");
+                $this->assertSame($j, $b64Stream->tell(), "Tell at $j failed with $i step");
                 $b64Stream->read($i);
             }
-            $this->assertEquals(strlen($str), $b64Stream->tell(), "Final tell failed with $i step");
+            $this->assertSame(strlen($str), $b64Stream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -85,7 +85,7 @@ class Base64StreamTest extends TestCase
         $streamDecorator = new Base64Stream(new PregReplaceFilterStream(Psr7\Utils::streamFor($f), '/[^a-zA-Z0-9\/\+=]/', ''));
         $handle = StreamWrapper::getResource($streamDecorator);
 
-        $this->assertEquals(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
+        $this->assertSame(file_get_contents($org), stream_get_contents($handle), 'Decoded blueball not equal to original file');
 
         fclose($handle);
         fclose($f);
@@ -126,7 +126,7 @@ class Base64StreamTest extends TestCase
 
             $stream->rewind();
             $istream = new Base64Stream($stream);
-            $this->assertEquals($contents, $istream->getContents());
+            $this->assertSame($contents, $istream->getContents());
         }
     }
 
@@ -153,7 +153,7 @@ class Base64StreamTest extends TestCase
 
             $stream->rewind();
             $istream = new Base64Stream($stream);
-            $this->assertEquals($str, $istream->getContents());
+            $this->assertSame($str, $istream->getContents());
         }
     }
 

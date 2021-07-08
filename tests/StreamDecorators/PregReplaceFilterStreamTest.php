@@ -18,7 +18,7 @@ class PregReplaceFilterStreamTest extends TestCase
     {
         $stream = Psr7\Utils::streamFor('a-ll t-h-e k-ing\'s me-n');
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
-        $this->assertEquals('all the king\'s men', $test->getContents());
+        $this->assertSame('all the king\'s men', $test->getContents());
     }
 
     public function testReadBuffered()
@@ -29,7 +29,7 @@ class PregReplaceFilterStreamTest extends TestCase
 
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
         for ($i = 0; $i < strlen($str); $i += 10) {
-            $this->assertEquals(substr($str, $i, 10), $test->read(10));
+            $this->assertSame(substr($str, $i, 10), $test->read(10));
         }
     }
 

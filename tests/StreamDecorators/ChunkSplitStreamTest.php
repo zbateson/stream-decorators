@@ -32,10 +32,10 @@ class ChunkSplitStreamTest extends TestCase
 
         $this->assertStringEndsWith('|', $str);
         $this->assertCount(5, $arr);
-        $this->assertEquals(10, strlen($arr[0]));
-        $this->assertEquals(10, strlen($arr[1]));
-        $this->assertEquals(10, strlen($arr[2]));
-        $this->assertEquals(5, strlen($arr[3]));
+        $this->assertSame(10, strlen($arr[0]));
+        $this->assertSame(10, strlen($arr[1]));
+        $this->assertSame(10, strlen($arr[2]));
+        $this->assertSame(5, strlen($arr[3]));
         $this->assertEmpty($arr[4]);
     }
 
@@ -55,8 +55,8 @@ class ChunkSplitStreamTest extends TestCase
 
         $this->assertStringEndsWith('|', $str);
         $this->assertCount(3, $arr);
-        $this->assertEquals(10, strlen($arr[0]));
-        $this->assertEquals(10, strlen($arr[1]));
+        $this->assertSame(10, strlen($arr[0]));
+        $this->assertSame(10, strlen($arr[1]));
         $this->assertEmpty($arr[2]);
     }
 }
