@@ -86,7 +86,7 @@ class PregReplaceFilterStream implements StreamInterface
      */
     private function fillBuffer($length)
     {
-        $fill = intval(max([$length, 8192]));
+        $fill = (int)max([$length, 8192]);
         while ($this->buffer->getSize() < $length) {
             $read = $this->stream->read($fill);
             if ($read === false || $read === '') {

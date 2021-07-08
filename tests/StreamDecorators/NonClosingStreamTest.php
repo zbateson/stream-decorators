@@ -16,7 +16,7 @@ class NonClosingStreamTest extends TestCase
     public function testClose()
     {
         $str = 'Testacular';
-        $org = Psr7\stream_for($str);
+        $org = Psr7\Utils::streamFor($str);
         $stream = new NonClosingStream($org);
         $stream->close();
         $this->assertSame($org->getContents(), 'Testacular');
@@ -25,7 +25,7 @@ class NonClosingStreamTest extends TestCase
     public function testDetach()
     {
         $str = 'Testacular';
-        $org = Psr7\stream_for($str);
+        $org = Psr7\Utils::streamFor($str);
         $stream = new NonClosingStream($org);
         $stream->detach();
         $this->assertSame($org->getContents(), 'Testacular');

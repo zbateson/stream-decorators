@@ -17,7 +17,7 @@ use GuzzleHttp\Psr7\StreamDecoratorTrait;
  *
  * ```
  * $f = fopen('php://temp', 'r+');
- * $test = new NonClosingStream(Psr7\stream_for('test'));
+ * $test = new NonClosingStream(Psr7\Utils::streamFor('test'));
  * // work
  * $test->close();
  * rewind($f);      // error, $f is a closed resource
@@ -26,7 +26,7 @@ use GuzzleHttp\Psr7\StreamDecoratorTrait;
  * Instead, this would work:
  *
  * ```
- * $stream = Psr7\stream_for(fopen('php://temp', 'r+'));
+ * $stream = Psr7\Utils::streamFor(fopen('php://temp', 'r+'));
  * $test = new NonClosingStream($stream);
  * // work
  * $test->close();
