@@ -120,7 +120,7 @@ class CharsetStream implements StreamInterface
      */
     private function readRawCharsIntoBuffer($length)
     {
-        $n = ceil(($length + 32) / 4.0) * 4;
+        $n = (int) ceil(($length + 32) / 4.0) * 4;
         while ($this->bufferLength < $n) {
             $raw = $this->stream->read($n + 512);
             if ($raw === false || $raw === '') {
