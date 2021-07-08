@@ -82,7 +82,7 @@ class ChunkSplitStream implements StreamInterface
      * are inserted every "line length" characters in the string.
      *
      * @param string $string
-     * @return number of bytes written
+     * @return int number of bytes written
      */
     public function write($string)
     {
