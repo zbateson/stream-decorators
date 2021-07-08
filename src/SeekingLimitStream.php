@@ -83,9 +83,9 @@ class SeekingLimitStream implements StreamInterface
         }
         if ($this->limit === -1) {
             return $size - $this->offset;
-        } else {
-            return min([$this->limit, $size - $this->offset]);
         }
+
+        return min([$this->limit, $size - $this->offset]);
     }
 
     /**
