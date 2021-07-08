@@ -83,7 +83,7 @@ class UUStreamTest extends TestCase
             $stream = Psr7\Utils::streamFor(convert_uuencode(substr($str, $i)));
             $uuStream = new UUStream($stream);
             for ($j = $i; !$uuStream->eof(); ++$j) {
-                $this->assertSame(substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr $i iteration $j");
+                $this->assertEquals(substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }

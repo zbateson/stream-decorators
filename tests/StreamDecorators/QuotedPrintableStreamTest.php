@@ -67,7 +67,7 @@ class QuotedPrintableStreamTest extends TestCase
             $stream = Psr7\Utils::streamFor(quoted_printable_encode($substr));
             $qpStream = new QuotedPrintableStream($stream);
             for ($j = 0; !$qpStream->eof(); ++$j) {
-                $this->assertSame(substr($substr, $j, 1), $qpStream->read(1), "Failed reading to EOF on substr $i iteration $j");
+                $this->assertEquals(substr($substr, $j, 1), $qpStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }

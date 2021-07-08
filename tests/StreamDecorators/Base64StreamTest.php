@@ -43,7 +43,7 @@ class Base64StreamTest extends TestCase
             $stream = Psr7\Utils::streamFor(base64_encode(substr($str, $i)));
             $b64Stream = new Base64Stream($stream);
             for ($j = $i; !$b64Stream->eof(); ++$j) {
-                $this->assertSame(substr($str, $j, 1), $b64Stream->read(1), "Failed reading to EOF on substr $i iteration $j");
+                $this->assertEquals(substr($str, $j, 1), $b64Stream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }
