@@ -160,7 +160,7 @@ class CharsetStream implements StreamInterface
         
         $this->position += $numChars;
         $this->buffer = $this->converter->getSubstr($this->buffer, $this->streamCharset, $numChars);
-        $this->bufferLength = $this->bufferLength - $numChars;
+        $this->bufferLength -= $numChars;
 
         return $this->converter->convert($chars, $this->streamCharset, $this->stringCharset);
     }
