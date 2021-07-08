@@ -31,7 +31,7 @@ $stream = GuzzleHttp\Psr7\Utils::streamFor($handle);
 $b64Stream = new ZBateson\StreamDecorators\Base64Stream($stream);
 $charsetStream = new ZBateson\StreamDecorators\CharsetStream($b64Stream, 'UTF-32', 'UTF-8');
 
-while (($line = GuzzleHttp\Psr7\readline()) !== false) {
+while (($line = GuzzleHttp\Psr7\Utils::readLine()) !== false) {
     echo $line, "\r\n";
 }
 
