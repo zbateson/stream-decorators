@@ -2,7 +2,7 @@
 
 Psr7 stream decorators for character set conversion and common mail format content encodings.
 
-[![Build Status](https://travis-ci.org/zbateson/stream-decorators.svg?branch=master)](https://travis-ci.org/zbateson/stream-decorators)
+[![Tests](https://github.com/zbateson/stream-decorators/actions/workflows/tests.yml/badge.svg)](https://github.com/zbateson/stream-decorators/actions/workflows/tests.yml)
 [![Code Coverage](https://scrutinizer-ci.com/g/zbateson/stream-decorators/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/zbateson/stream-decorators/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/zbateson/stream-decorators/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/zbateson/stream-decorators/?branch=master)
 [![Total Downloads](https://poser.pugx.org/zbateson/stream-decorators/downloads)](//packagist.org/packages/zbateson/stream-decorators)
