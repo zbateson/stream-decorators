@@ -104,6 +104,7 @@ class ChunkSplitStream implements StreamInterface
     /**
      * Closes the stream after ensuring a final line ending character is
      * inserted.
+     * @return void
      */
     public function close()
     {
@@ -114,6 +115,7 @@ class ChunkSplitStream implements StreamInterface
     /**
      * Detaches the stream after ensuring a final line ending character is
      * inserted.
+     * @return resource|null Underlying PHP stream, if any
      */
     public function detach()
     {

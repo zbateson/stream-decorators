@@ -209,6 +209,7 @@ class Base64Stream implements StreamInterface
     /**
      * Closes the underlying stream after writing out any remaining bytes
      * needing to be encoded.
+     * @return void
      */
     public function close()
     {
@@ -219,6 +220,7 @@ class Base64Stream implements StreamInterface
     /**
      * Detaches the underlying stream after writing out any remaining bytes
      * needing to be encoded.
+     * @return resource|null Underlying PHP stream, if any
      */
     public function detach()
     {
