@@ -41,6 +41,7 @@ class NonClosingStream implements StreamInterface
 
     /**
      * Overridden to detach the underlying stream without closing it.
+     * @return void
      */
     public function close()
     {
@@ -49,6 +50,7 @@ class NonClosingStream implements StreamInterface
 
     /**
      * Overridden to detach the underlying stream without closing it.
+     * @return resource|null Underlying PHP stream, if any
      */
     public function detach()
     {

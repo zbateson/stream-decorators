@@ -211,6 +211,7 @@ class QuotedPrintableStream implements StreamInterface
     /**
      * Closes the underlying stream and writes a final CRLF if the current line
      * isn't empty.
+     * @return void
      */
     public function close()
     {
@@ -221,6 +222,7 @@ class QuotedPrintableStream implements StreamInterface
     /**
      * Closes the underlying stream and writes a final CRLF if the current line
      * isn't empty.
+     * @return resource|null Underlying PHP stream, if any
      */
     public function detach()
     {

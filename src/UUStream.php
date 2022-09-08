@@ -311,6 +311,7 @@ class UUStream implements StreamInterface
     /**
      * Writes any remaining bytes out followed by the uu-encoded footer, then
      * closes the stream.
+     * @return void
      */
     public function close()
     {
@@ -321,6 +322,7 @@ class UUStream implements StreamInterface
     /**
      * Writes any remaining bytes out followed by the uu-encoded footer, then
      * detaches the stream.
+     * @return resource|null Underlying PHP stream, if any
      */
     public function detach()
     {
