@@ -39,6 +39,11 @@ class SeekingLimitStream implements StreamInterface
     private $position = 0;
 
     /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
+    /**
      * @param StreamInterface $stream Stream to wrap
      * @param int             $limit  Total number of bytes to allow to be read
      *                                from the stream. Pass -1 for no limit.
@@ -57,7 +62,7 @@ class SeekingLimitStream implements StreamInterface
 
     /**
      * Returns the current relative read position of this stream subset.
-     * 
+     *
      * @return int
      */
     public function tell()
@@ -91,7 +96,7 @@ class SeekingLimitStream implements StreamInterface
     /**
      * Returns true if the current read position is at the end of the limited
      * stream
-     * 
+     *
      * @return boolean
      */
     public function eof()
@@ -106,7 +111,7 @@ class SeekingLimitStream implements StreamInterface
     /**
      * Ensures the seek position specified is within the stream's bounds, and
      * sets the internal position pointer (doesn't actually seek).
-     * 
+     *
      * @param int $pos
      */
     private function doSeek($pos)

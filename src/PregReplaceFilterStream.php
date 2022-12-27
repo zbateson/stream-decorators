@@ -38,6 +38,11 @@ class PregReplaceFilterStream implements StreamInterface
      */
     private $buffer;
 
+    /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
     public function __construct(StreamInterface $stream, $pattern, $replacement)
     {
         $this->stream = $stream;

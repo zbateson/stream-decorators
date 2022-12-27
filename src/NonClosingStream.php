@@ -40,6 +40,11 @@ class NonClosingStream implements StreamInterface
     use StreamDecoratorTrait;
 
     /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
+    /**
      * Overridden to detach the underlying stream without closing it.
      * @return void
      */

@@ -42,6 +42,11 @@ class ChunkSplitStream implements StreamInterface
     private $lineEndingLength;
 
     /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
+    /**
      * @param StreamInterface $stream
      * @param int $lineLength
      * @param string $lineEnding

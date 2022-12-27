@@ -30,6 +30,11 @@ class QuotedPrintableStream implements StreamInterface
     private $lastLine = '';
 
     /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
+    /**
      * Overridden to return the position in the target encoding.
      *
      * @return int
