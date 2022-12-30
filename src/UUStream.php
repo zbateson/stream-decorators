@@ -51,6 +51,11 @@ class UUStream implements StreamInterface
     private $isWriting = false;
 
     /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
+    /**
      * @param StreamInterface $stream Stream to decorate
      * @param string $filename optional file name
      */
@@ -227,7 +232,7 @@ class UUStream implements StreamInterface
      * Prepends any existing remainder to the passed string, then checks if the
      * string fits into a uuencoded line, and removes and keeps any remainder
      * from the string to write.  Full lines ready for writing are returned.
-     * 
+     *
      * @param string $string
      * @return string
      */

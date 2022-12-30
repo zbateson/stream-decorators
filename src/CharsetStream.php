@@ -24,12 +24,12 @@ class CharsetStream implements StreamInterface
      * @var MbWrapper the charset converter
      */
     protected $converter = null;
-    
+
     /**
      * @var string charset of the source stream
      */
     protected $streamCharset = 'ISO-8859-1';
-    
+
     /**
      * @var string charset of strings passed in write operations, and returned
      *      in read operations.
@@ -51,6 +51,11 @@ class CharsetStream implements StreamInterface
      *      encoding
      */
     private $buffer = '';
+
+    /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
 
     /**
      * @param StreamInterface $stream Stream to decorate
@@ -157,7 +162,7 @@ class CharsetStream implements StreamInterface
         $this->readRawCharsIntoBuffer($length);
         $numChars = min([$this->bufferLength, $length]);
         $chars = $this->converter->getSubstr($this->buffer, $this->streamCharset, 0, $numChars);
-        
+
         $this->position += $numChars;
         $this->buffer = $this->converter->getSubstr($this->buffer, $this->streamCharset, $numChars);
         $this->bufferLength -= $numChars;

@@ -60,6 +60,11 @@ class Base64Stream implements StreamInterface
     private $position = 0;
 
     /**
+     * @var StreamInterface $stream
+     */
+    private $stream;
+
+    /**
      * @param StreamInterface $stream
      */
     public function __construct(StreamInterface $stream)
