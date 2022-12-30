@@ -78,8 +78,8 @@ class Base64StreamTest extends TestCase
 
     public function testDecodeFile()
     {
-        $encoded = './tests/_data/blueball.b64.txt';
-        $org = './tests/_data/blueball.png';
+        $encoded = __DIR__ . '/../_data/blueball.b64.txt';
+        $org = __DIR__ . '/../_data/blueball.png';
         $f = fopen($encoded, 'r');
 
         $streamDecorator = new Base64Stream(new PregReplaceFilterStream(Psr7\Utils::streamFor($f), '/[^a-zA-Z0-9\/\+=]/', ''));
@@ -93,8 +93,8 @@ class Base64StreamTest extends TestCase
 
     public function testDecodeWordFileWithStreamGetContents()
     {
-        $encoded = './tests/_data/test.b64.txt';
-        $org = './tests/_data/test.doc';
+        $encoded = __DIR__ . '/../_data/test.b64.txt';
+        $org = __DIR__ . '/../_data/test.doc';
         $f = fopen($encoded, 'r');
 
         $streamDecorator = new Base64Stream(new PregReplaceFilterStream(Psr7\Utils::streamFor($f), '/[^a-zA-Z0-9\/\+=]/', ''));
@@ -110,7 +110,7 @@ class Base64StreamTest extends TestCase
 
     public function testWriteAndDetach()
     {
-        $org = './tests/_data/blueball.png';
+        $org = __DIR__ . '/../_data/blueball.png';
         $contents = file_get_contents($org);
 
         for ($i = 1; $i < strlen($contents); ++$i) {

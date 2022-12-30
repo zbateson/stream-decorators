@@ -154,23 +154,23 @@ class UUStreamTest extends TestCase
 
     public function testDecodeFile()
     {
-        $encoded = './tests/_data/blueball.uu.txt';
-        $org = './tests/_data/blueball.png';
+        $encoded = __DIR__ . '/../_data/blueball.uu.txt';
+        $org = __DIR__ . '/../_data/blueball.png';
         $stream = new UUStream(Psr7\Utils::streamFor(fopen($encoded, 'r')));
         $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testDecodeFileWithSpaces()
     {
-        $encoded = './tests/_data/blueball-2.uu.txt';
-        $org = './tests/_data/blueball.png';
+        $encoded = __DIR__ . '/../_data/blueball-2.uu.txt';
+        $org = __DIR__ . '/../_data/blueball.png';
         $stream = new UUStream(Psr7\Utils::streamFor(fopen($encoded, 'r')));
         $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testWrite()
     {
-        $org = './tests/_data/blueball.png';
+        $org = __DIR__ . '/../_data/blueball.png';
         $contents = file_get_contents($org);
 
         for ($i = 1; $i < strlen($contents); ++$i) {
