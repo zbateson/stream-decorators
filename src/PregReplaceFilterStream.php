@@ -4,11 +4,12 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use GuzzleHttp\Psr7\BufferStream;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
 /**
@@ -54,11 +55,11 @@ class PregReplaceFilterStream implements StreamInterface
     /**
      * Returns true if the end of stream has been reached.
      *
-     * @return boolean
+     * @return bool
      */
     public function eof()
     {
-        return ($this->buffer->eof() && $this->stream->eof());
+        return $this->buffer->eof() && $this->stream->eof();
     }
 
     /**
@@ -76,29 +77,11 @@ class PregReplaceFilterStream implements StreamInterface
     /**
      * Overridden to return false
      *
-     * @return boolean
+     * @return bool
      */
     public function isSeekable()
     {
         return false;
-    }
-
-    /**
-     * Fills the BufferStream with at least 8192 characters of input for future
-     * read operations.
-     *
-     * @param int $length
-     */
-    private function fillBuffer($length)
-    {
-        $fill = (int)max([$length, 8192]);
-        while ($this->buffer->getSize() < $length) {
-            $read = $this->stream->read($fill);
-            if ($read === false || $read === '') {
-                break;
-            }
-            $this->buffer->write(preg_replace($this->pattern, $this->replacement, $read));
-        }
     }
 
     /**
@@ -111,6 +94,27 @@ class PregReplaceFilterStream implements StreamInterface
     public function read($length)
     {
         $this->fillBuffer($length);
+
         return $this->buffer->read($length);
+    }
+
+    /**
+     * Fills the BufferStream with at least 8192 characters of input for future
+     * read operations.
+     *
+     * @param int $length
+     */
+    private function fillBuffer($length)
+    {
+        $fill = (int)\max([$length, 8192]);
+
+        while ($this->buffer->getSize() < $length) {
+            $read = $this->stream->read($fill);
+
+            if (false === $read || '' === $read) {
+                break;
+            }
+            $this->buffer->write(\preg_replace($this->pattern, $this->replacement, $read));
+        }
     }
 }

@@ -1,8 +1,9 @@
 <?php
+
 namespace ZBateson\StreamDecorators;
 
-use LegacyPHPUnit\TestCase;
 use GuzzleHttp\Psr7;
+use LegacyPHPUnit\TestCase;
 
 /**
  * Description of NonClosingStreamTest

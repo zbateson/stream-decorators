@@ -4,12 +4,13 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use ZBateson\MbWrapper\MbWrapper;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
+use ZBateson\MbWrapper\MbWrapper;
 
 /**
  * GuzzleHttp\Psr7 stream decoder extension for charset conversion.
@@ -88,7 +89,7 @@ class CharsetStream implements StreamInterface
      */
     public function getSize()
     {
-        return null;
+
     }
 
     /**
@@ -106,7 +107,7 @@ class CharsetStream implements StreamInterface
     /**
      * Overridden to return false
      *
-     * @return boolean
+     * @return bool
      */
     public function isSeekable()
     {
@@ -114,36 +115,13 @@ class CharsetStream implements StreamInterface
     }
 
     /**
-     * Reads a minimum of $length characters from the underlying stream in its
-     * encoding into $this->buffer.
-     *
-     * Aligning to 4 bytes seemed to solve an issue reading from UTF-16LE
-     * streams and pass testReadUtf16LeToEof, although the buffered string
-     * should've solved that on its own.
-     *
-     * @param int $length
-     */
-    private function readRawCharsIntoBuffer($length)
-    {
-        $n = (int) ceil(($length + 32) / 4.0) * 4;
-        while ($this->bufferLength < $n) {
-            $raw = $this->stream->read($n + 512);
-            if ($raw === false || $raw === '') {
-                return;
-            }
-            $this->buffer .= $raw;
-            $this->bufferLength = $this->converter->getLength($this->buffer, $this->streamCharset);
-        }
-    }
-
-    /**
      * Returns true if the end of stream has been reached.
      *
-     * @return boolean
+     * @return bool
      */
     public function eof()
     {
-        return ($this->bufferLength === 0 && $this->stream->eof());
+        return 0 === $this->bufferLength && $this->stream->eof();
     }
 
     /**
@@ -160,7 +138,7 @@ class CharsetStream implements StreamInterface
             return $this->stream->read($length);
         }
         $this->readRawCharsIntoBuffer($length);
-        $numChars = min([$this->bufferLength, $length]);
+        $numChars = \min([$this->bufferLength, $length]);
         $chars = $this->converter->getSubstr($this->buffer, $this->streamCharset, 0, $numChars);
 
         $this->position += $numChars;
@@ -182,6 +160,32 @@ class CharsetStream implements StreamInterface
         $converted = $this->converter->convert($string, $this->stringCharset, $this->streamCharset);
         $written = $this->converter->getLength($converted, $this->streamCharset);
         $this->position += $written;
+
         return $this->stream->write($converted);
+    }
+
+    /**
+     * Reads a minimum of $length characters from the underlying stream in its
+     * encoding into $this->buffer.
+     *
+     * Aligning to 4 bytes seemed to solve an issue reading from UTF-16LE
+     * streams and pass testReadUtf16LeToEof, although the buffered string
+     * should've solved that on its own.
+     *
+     * @param int $length
+     */
+    private function readRawCharsIntoBuffer($length)
+    {
+        $n = (int)\ceil(($length + 32) / 4.0) * 4;
+
+        while ($this->bufferLength < $n) {
+            $raw = $this->stream->read($n + 512);
+
+            if (false === $raw || '' === $raw) {
+                return;
+            }
+            $this->buffer .= $raw;
+            $this->bufferLength = $this->converter->getLength($this->buffer, $this->streamCharset);
+        }
     }
 }

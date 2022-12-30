@@ -4,10 +4,11 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
 /**
@@ -51,7 +52,7 @@ class QuotedPrintableStream implements StreamInterface
      */
     public function getSize()
     {
-        return null;
+
     }
 
     /**
@@ -69,83 +70,11 @@ class QuotedPrintableStream implements StreamInterface
     /**
      * Overridden to return false
      *
-     * @return boolean
+     * @return bool
      */
     public function isSeekable()
     {
         return false;
-    }
-
-    /**
-     * Reads $length chars from the underlying stream, prepending the past $pre
-     * to it first.
-     *
-     * If the characters read (including the prepended $pre) contain invalid
-     * quoted-printable characters, the underlying stream is rewound by the
-     * total number of characters ($length + strlen($pre)).
-     *
-     * The quoted-printable encoded characters are returned.  If the characters
-     * read are invalid, '3D' is returned indicating an '=' character.
-     *
-     * @param int $length
-     * @param string $pre
-     * @return string
-     */
-    private function readEncodedChars($length, $pre = '')
-    {
-        $str = $pre . $this->stream->read($length);
-        $len = strlen($str);
-        if ($len > 0 && !preg_match('/^[0-9a-f]{2}$|^[\r\n]{1,2}.?$/is', $str) && $this->stream->isSeekable()) {
-            $this->stream->seek(-$len, SEEK_CUR);
-            return '3D';    // '=' character
-        }
-        return $str;
-    }
-
-    /**
-     * Decodes the passed $block of text.
-     *
-     * If the last or before last character is an '=' char, indicating the
-     * beginning of a quoted-printable encoded char, 1 or 2 additional bytes are
-     * read from the underlying stream respectively.
-     *
-     * The decoded string is returned.
-     *
-     * @param string $block
-     * @return string
-     */
-    private function decodeBlock($block)
-    {
-        if (substr($block, -1) === '=') {
-            $block .= $this->readEncodedChars(2);
-        } elseif (substr($block, -2, 1) === '=') {
-            $first = substr($block, -1);
-            $block = substr($block, 0, -1);
-            $block .= $this->readEncodedChars(1, $first);
-        }
-        return quoted_printable_decode($block);
-    }
-
-    /**
-     * Reads up to $length characters, appends them to the passed $str string,
-     * and returns the total number of characters read.
-     *
-     * -1 is returned if there are no more bytes to read.
-     *
-     * @param int $length
-     * @param string $append
-     * @return int
-     */
-    private function readRawDecodeAndAppend($length, &$str)
-    {
-        $block = $this->stream->read($length);
-        if ($block === false || $block === '') {
-            return -1;
-        }
-        $decoded = $this->decodeBlock($block);
-        $count = strlen($decoded);
-        $str .= $decoded;
-        return $count;
     }
 
     /**
@@ -163,14 +92,17 @@ class QuotedPrintableStream implements StreamInterface
         }
         $count = 0;
         $bytes = '';
+
         while ($count < $length) {
             $nRead = $this->readRawDecodeAndAppend($length - $count, $bytes);
-            if ($nRead === -1) {
+
+            if (-1 === $nRead) {
                 break;
             }
             $this->position += $nRead;
             $count += $nRead;
         }
+
         return $bytes;
     }
 
@@ -186,31 +118,22 @@ class QuotedPrintableStream implements StreamInterface
      */
     public function write($string)
     {
-        $encodedLine = quoted_printable_encode($this->lastLine);
-        $lineAndString = rtrim(quoted_printable_encode($this->lastLine . $string), "\r\n");
-        $write = substr($lineAndString, strlen($encodedLine));
+        $encodedLine = \quoted_printable_encode($this->lastLine);
+        $lineAndString = \rtrim(\quoted_printable_encode($this->lastLine . $string), "\r\n");
+        $write = \substr($lineAndString, \strlen($encodedLine));
         $this->stream->write($write);
-        $written = strlen($string);
+        $written = \strlen($string);
         $this->position += $written;
 
-        $lpos = strrpos($lineAndString, "\n");
+        $lpos = \strrpos($lineAndString, "\n");
         $lastLine = $lineAndString;
-        if ($lpos !== false) {
-            $lastLine = substr($lineAndString, $lpos + 1);
-        }
-        $this->lastLine = quoted_printable_decode($lastLine);
-        return $written;
-    }
 
-    /**
-     * Writes out a final CRLF if the current line isn't empty.
-     */
-    private function beforeClose()
-    {
-        if ($this->isWritable() && $this->lastLine !== '') {
-            $this->stream->write("\r\n");
-            $this->lastLine = '';
+        if (false !== $lpos) {
+            $lastLine = \substr($lineAndString, $lpos + 1);
         }
+        $this->lastLine = \quoted_printable_decode($lastLine);
+
+        return $written;
     }
 
     /**
@@ -233,5 +156,93 @@ class QuotedPrintableStream implements StreamInterface
     {
         $this->beforeClose();
         $this->stream->detach();
+    }
+
+    /**
+     * Reads $length chars from the underlying stream, prepending the past $pre
+     * to it first.
+     *
+     * If the characters read (including the prepended $pre) contain invalid
+     * quoted-printable characters, the underlying stream is rewound by the
+     * total number of characters ($length + strlen($pre)).
+     *
+     * The quoted-printable encoded characters are returned.  If the characters
+     * read are invalid, '3D' is returned indicating an '=' character.
+     *
+     * @param int $length
+     * @param string $pre
+     * @return string
+     */
+    private function readEncodedChars($length, $pre = '')
+    {
+        $str = $pre . $this->stream->read($length);
+        $len = \strlen($str);
+
+        if ($len > 0 && ! \preg_match('/^[0-9a-f]{2}$|^[\r\n]{1,2}.?$/is', $str) && $this->stream->isSeekable()) {
+            $this->stream->seek(-$len, SEEK_CUR);
+
+            return '3D';    // '=' character
+        }
+
+        return $str;
+    }
+
+    /**
+     * Decodes the passed $block of text.
+     *
+     * If the last or before last character is an '=' char, indicating the
+     * beginning of a quoted-printable encoded char, 1 or 2 additional bytes are
+     * read from the underlying stream respectively.
+     *
+     * The decoded string is returned.
+     *
+     * @param string $block
+     * @return string
+     */
+    private function decodeBlock($block)
+    {
+        if ('=' === \substr($block, -1)) {
+            $block .= $this->readEncodedChars(2);
+        } elseif ('=' === \substr($block, -2, 1)) {
+            $first = \substr($block, -1);
+            $block = \substr($block, 0, -1);
+            $block .= $this->readEncodedChars(1, $first);
+        }
+
+        return \quoted_printable_decode($block);
+    }
+
+    /**
+     * Reads up to $length characters, appends them to the passed $str string,
+     * and returns the total number of characters read.
+     *
+     * -1 is returned if there are no more bytes to read.
+     *
+     * @param int $length
+     * @return int
+     */
+    private function readRawDecodeAndAppend($length, &$str)
+    {
+        $block = $this->stream->read($length);
+
+        if (false === $block || '' === $block) {
+            return -1;
+        }
+        $decoded = $this->decodeBlock($block);
+        $count = \strlen($decoded);
+        $str .= $decoded;
+
+        return $count;
+    }
+
+    /**
+     * Writes out a final CRLF if the current line isn't empty.
+     */
+    private function beforeClose()
+    {
+        if ($this->isWritable() && '' !== $this->lastLine) {
+            $this->stream->write("\r\n");
+            $this->lastLine = '';
+        }
     }
 }

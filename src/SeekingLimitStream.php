@@ -4,10 +4,11 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Maintains an internal 'read' position, and seeks to it before reading, then
@@ -79,47 +80,37 @@ class SeekingLimitStream implements StreamInterface
     public function getSize()
     {
         $size = $this->stream->getSize();
-        if ($size === null) {
+
+        if (null === $size) {
             // this shouldn't happen on a seekable stream I don't think...
             $pos = $this->stream->tell();
             $this->stream->seek(0, SEEK_END);
             $size = $this->stream->tell();
             $this->stream->seek($pos);
         }
-        if ($this->limit === -1) {
+
+        if (-1 === $this->limit) {
             return $size - $this->offset;
         }
 
-        return min([$this->limit, $size - $this->offset]);
+        return \min([$this->limit, $size - $this->offset]);
     }
 
     /**
      * Returns true if the current read position is at the end of the limited
      * stream
      *
-     * @return boolean
+     * @return bool
      */
     public function eof()
     {
         $size = $this->limit;
-        if ($size === -1) {
+
+        if (-1 === $size) {
             $size = $this->getSize();
         }
-        return ($this->position >= $size);
-    }
 
-    /**
-     * Ensures the seek position specified is within the stream's bounds, and
-     * sets the internal position pointer (doesn't actually seek).
-     *
-     * @param int $pos
-     */
-    private function doSeek($pos)
-    {
-        if ($this->limit !== -1) {
-            $pos = min([$pos, $this->limit]);
-        }
-        $this->position = max([0, $pos]);
+        return $this->position >= $size;
     }
 
     /**
@@ -136,13 +127,18 @@ class SeekingLimitStream implements StreamInterface
     public function seek($offset, $whence = SEEK_SET)
     {
         $pos = $offset;
+
         switch ($whence) {
             case SEEK_CUR:
                 $pos = $this->position + $offset;
+
                 break;
+
             case SEEK_END:
                 $pos = $this->limit + $offset;
+
                 break;
+
             default:
                 break;
         }
@@ -181,12 +177,15 @@ class SeekingLimitStream implements StreamInterface
     public function seekAndRead($length)
     {
         $this->stream->seek($this->offset + $this->position);
-        if ($this->limit !== -1) {
-            $length = min($length, $this->limit - $this->position);
+
+        if (-1 !== $this->limit) {
+            $length = \min($length, $this->limit - $this->position);
+
             if ($length <= 0) {
                 return '';
             }
         }
+
         return $this->stream->read($length);
     }
 
@@ -202,12 +201,28 @@ class SeekingLimitStream implements StreamInterface
     {
         $pos = $this->stream->tell();
         $ret = $this->seekAndRead($length);
-        $this->position += strlen($ret);
+        $this->position += \strlen($ret);
         $this->stream->seek($pos);
-        if ($this->limit !== -1 && $this->position > $this->limit) {
-            $ret = substr($ret, 0, -($this->position - $this->limit));
+
+        if (-1 !== $this->limit && $this->position > $this->limit) {
+            $ret = \substr($ret, 0, -($this->position - $this->limit));
             $this->position = $this->limit;
         }
+
         return $ret;
+    }
+
+    /**
+     * Ensures the seek position specified is within the stream's bounds, and
+     * sets the internal position pointer (doesn't actually seek).
+     *
+     * @param int $pos
+     */
+    private function doSeek($pos)
+    {
+        if (-1 !== $this->limit) {
+            $pos = \min([$pos, $this->limit]);
+        }
+        $this->position = \max([0, $pos]);
     }
 }

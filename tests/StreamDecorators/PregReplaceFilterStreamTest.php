@@ -1,8 +1,9 @@
 <?php
+
 namespace ZBateson\StreamDecorators;
 
-use LegacyPHPUnit\TestCase;
 use GuzzleHttp\Psr7;
+use LegacyPHPUnit\TestCase;
 use RuntimeException;
 
 /**
@@ -23,13 +24,14 @@ class PregReplaceFilterStreamTest extends TestCase
 
     public function testReadBuffered()
     {
-        $str = str_repeat('All the King\'s Men ', 8000);
-        $filter = str_repeat('A-l-l t-h-e K-in-g\'s M-en ', 8000);
+        $str = \str_repeat('All the King\'s Men ', 8000);
+        $filter = \str_repeat('A-l-l t-h-e K-in-g\'s M-en ', 8000);
         $stream = Psr7\Utils::streamFor($filter);
 
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
-        for ($i = 0; $i < strlen($str); $i += 10) {
-            $this->assertSame(substr($str, $i, 10), $test->read(10));
+
+        for ($i = 0; $i < \strlen($str); $i += 10) {
+            $this->assertSame(\substr($str, $i, 10), $test->read(10));
         }
     }
 
@@ -39,6 +41,7 @@ class PregReplaceFilterStreamTest extends TestCase
         $test = new PregReplaceFilterStream($stream, '/\-/', '');
         $this->assertFalse($test->isSeekable());
         $exceptionThrown = false;
+
         try {
             $test->seek(0);
         } catch (RuntimeException $exc) {
