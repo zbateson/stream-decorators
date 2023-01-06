@@ -4,12 +4,11 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
-
 namespace ZBateson\StreamDecorators;
 
-use GuzzleHttp\Psr7\BufferStream;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use Psr\Http\Message\StreamInterface;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use GuzzleHttp\Psr7\BufferStream;
 use RuntimeException;
 
 /**
@@ -47,7 +46,7 @@ class UUStream implements StreamInterface
     private $position = 0;
 
     /**
-     * @var bool set to true when 'write' is called
+     * @var boolean set to true when 'write' is called
      */
     private $isWriting = false;
 
@@ -84,7 +83,7 @@ class UUStream implements StreamInterface
      */
     public function getSize()
     {
-
+        return null;
     }
 
     /**
@@ -102,7 +101,7 @@ class UUStream implements StreamInterface
     /**
      * Overridden to return false
      *
-     * @return bool
+     * @return boolean
      */
     public function isSeekable()
     {
@@ -110,13 +109,76 @@ class UUStream implements StreamInterface
     }
 
     /**
+     * Finds the next end-of-line character to ensure a line isn't broken up
+     * while buffering.
+     *
+     * @return string
+     */
+    private function readToEndOfLine($length)
+    {
+        $str = $this->stream->read($length);
+        if ($str === false || $str === '') {
+            return $str;
+        }
+        while (substr($str, -1) !== "\n") {
+            $chr = $this->stream->read(1);
+            if ($chr === false || $chr === '') {
+                break;
+            }
+            $str .= $chr;
+        }
+        return $str;
+    }
+
+    /**
+     * Removes invalid characters from a uuencoded string, and 'BEGIN' and 'END'
+     * line headers and footers from the passed string before returning it.
+     *
+     * @param string $str
+     * @return string
+     */
+    private function filterAndDecode($str)
+    {
+        $ret = str_replace("\r", '', $str);
+        $ret = preg_replace('/[^\x21-\xf5`\n]/', '`', $ret);
+        if ($this->position === 0) {
+            $matches = [];
+            if (preg_match('/^\s*begin\s+[^\s+]\s+([^\r\n]+)\s*$/im', $ret, $matches)) {
+                $this->filename = $matches[1];
+            }
+            $ret = preg_replace('/^\s*begin[^\r\n]+\s*$/im', '', $ret);
+        } else {
+            $ret = preg_replace('/^\s*end\s*$/im', '', $ret);
+        }
+        return convert_uudecode(trim($ret));
+    }
+
+    /**
+     * Buffers bytes into $this->buffer, removing uuencoding headers and footers
+     * and decoding them.
+     */
+    private function fillBuffer($length)
+    {
+        // 5040 = 63 * 80, seems to be good balance for buffering in benchmarks
+        // testing with a simple 'if ($length < x)' and calculating a better
+        // size reduces speeds by up to 4x
+        while ($this->buffer->getSize() < $length) {
+            $read = $this->readToEndOfLine(5040);
+            if ($read === false || $read === '') {
+                break;
+            }
+            $this->buffer->write($this->filterAndDecode($read));
+        }
+    }
+
+    /**
      * Returns true if the end of stream has been reached.
      *
-     * @return bool
+     * @return boolean
      */
     public function eof()
     {
-        return $this->buffer->eof() && $this->stream->eof();
+        return ($this->buffer->eof() && $this->stream->eof());
     }
 
     /**
@@ -133,9 +195,57 @@ class UUStream implements StreamInterface
         }
         $this->fillBuffer($length);
         $read = $this->buffer->read($length);
-        $this->position += \strlen($read);
-
+        $this->position += strlen($read);
         return $read;
+    }
+
+    /**
+     * Writes the 'begin' UU header line.
+     */
+    private function writeUUHeader()
+    {
+        $filename = (empty($this->filename)) ? 'null' : $this->filename;
+        $this->stream->write("begin 666 $filename");
+    }
+
+    /**
+     * Writes the '`' and 'end' UU footer lines.
+     */
+    private function writeUUFooter()
+    {
+        $this->stream->write("\r\n`\r\nend\r\n");
+    }
+
+    /**
+     * Writes the passed bytes to the underlying stream after encoding them.
+     *
+     * @param string $bytes
+     */
+    private function writeEncoded($bytes)
+    {
+        $encoded = preg_replace('/\r\n|\r|\n/', "\r\n", rtrim(convert_uuencode($bytes)));
+        // removes ending '`' line
+        $this->stream->write("\r\n" . rtrim(substr($encoded, 0, -1)));
+    }
+
+    /**
+     * Prepends any existing remainder to the passed string, then checks if the
+     * string fits into a uuencoded line, and removes and keeps any remainder
+     * from the string to write.  Full lines ready for writing are returned.
+     *
+     * @param string $string
+     * @return string
+     */
+    private function handleRemainder($string)
+    {
+        $write = $this->remainder . $string;
+        $nRem = strlen($write) % 45;
+        $this->remainder = '';
+        if ($nRem !== 0) {
+            $this->remainder = substr($write, -$nRem);
+            $write = substr($write, 0, -$nRem);
+        }
+        return $write;
     }
 
     /**
@@ -155,18 +265,15 @@ class UUStream implements StreamInterface
     public function write($string)
     {
         $this->isWriting = true;
-
-        if (0 === $this->position) {
+        if ($this->position === 0) {
             $this->writeUUHeader();
         }
         $write = $this->handleRemainder($string);
-
-        if ('' !== $write) {
+        if ($write !== '') {
             $this->writeEncoded($write);
         }
-        $written = \strlen($string);
+        $written = strlen($string);
         $this->position += $written;
-
         return $written;
     }
 
@@ -191,6 +298,22 @@ class UUStream implements StreamInterface
     }
 
     /**
+     * Writes out any remaining bytes and the UU footer.
+     */
+    private function beforeClose()
+    {
+        if (!$this->isWriting) {
+            return;
+        }
+        if ($this->remainder !== '') {
+            $this->writeEncoded($this->remainder);
+        }
+        $this->remainder = '';
+        $this->isWriting = false;
+        $this->writeUUFooter();
+    }
+
+    /**
      * Writes any remaining bytes out followed by the uu-encoded footer, then
      * closes the stream.
      * @return void
@@ -210,144 +333,5 @@ class UUStream implements StreamInterface
     {
         $this->beforeClose();
         $this->stream->detach();
-    }
-
-    /**
-     * Finds the next end-of-line character to ensure a line isn't broken up
-     * while buffering.
-     *
-     * @return string
-     */
-    private function readToEndOfLine($length)
-    {
-        $str = $this->stream->read($length);
-
-        if (false === $str || '' === $str) {
-            return $str;
-        }
-
-        while ("\n" !== \substr($str, -1)) {
-            $chr = $this->stream->read(1);
-
-            if (false === $chr || '' === $chr) {
-                break;
-            }
-            $str .= $chr;
-        }
-
-        return $str;
-    }
-
-    /**
-     * Removes invalid characters from a uuencoded string, and 'BEGIN' and 'END'
-     * line headers and footers from the passed string before returning it.
-     *
-     * @param string $str
-     * @return string
-     */
-    private function filterAndDecode($str)
-    {
-        $ret = \str_replace("\r", '', $str);
-        $ret = \preg_replace('/[^\x21-\xf5`\n]/', '`', $ret);
-
-        if (0 === $this->position) {
-            $matches = [];
-
-            if (\preg_match('/^\s*begin\s+[^\s+]\s+([^\r\n]+)\s*$/im', $ret, $matches)) {
-                $this->filename = $matches[1];
-            }
-            $ret = \preg_replace('/^\s*begin[^\r\n]+\s*$/im', '', $ret);
-        } else {
-            $ret = \preg_replace('/^\s*end\s*$/im', '', $ret);
-        }
-
-        return \convert_uudecode(\trim($ret));
-    }
-
-    /**
-     * Buffers bytes into $this->buffer, removing uuencoding headers and footers
-     * and decoding them.
-     */
-    private function fillBuffer($length)
-    {
-        // 5040 = 63 * 80, seems to be good balance for buffering in benchmarks
-        // testing with a simple 'if ($length < x)' and calculating a better
-        // size reduces speeds by up to 4x
-        while ($this->buffer->getSize() < $length) {
-            $read = $this->readToEndOfLine(5040);
-
-            if (false === $read || '' === $read) {
-                break;
-            }
-            $this->buffer->write($this->filterAndDecode($read));
-        }
-    }
-
-    /**
-     * Writes the 'begin' UU header line.
-     */
-    private function writeUUHeader()
-    {
-        $filename = (empty($this->filename)) ? 'null' : $this->filename;
-        $this->stream->write("begin 666 {$filename}");
-    }
-
-    /**
-     * Writes the '`' and 'end' UU footer lines.
-     */
-    private function writeUUFooter()
-    {
-        $this->stream->write("\r\n`\r\nend\r\n");
-    }
-
-    /**
-     * Writes the passed bytes to the underlying stream after encoding them.
-     *
-     * @param string $bytes
-     */
-    private function writeEncoded($bytes)
-    {
-        $encoded = \preg_replace('/\r\n|\r|\n/', "\r\n", \rtrim(\convert_uuencode($bytes)));
-        // removes ending '`' line
-        $this->stream->write("\r\n" . \rtrim(\substr($encoded, 0, -1)));
-    }
-
-    /**
-     * Prepends any existing remainder to the passed string, then checks if the
-     * string fits into a uuencoded line, and removes and keeps any remainder
-     * from the string to write.  Full lines ready for writing are returned.
-     *
-     * @param string $string
-     * @return string
-     */
-    private function handleRemainder($string)
-    {
-        $write = $this->remainder . $string;
-        $nRem = \strlen($write) % 45;
-        $this->remainder = '';
-
-        if (0 !== $nRem) {
-            $this->remainder = \substr($write, -$nRem);
-            $write = \substr($write, 0, -$nRem);
-        }
-
-        return $write;
-    }
-
-    /**
-     * Writes out any remaining bytes and the UU footer.
-     */
-    private function beforeClose()
-    {
-        if (! $this->isWriting) {
-            return;
-        }
-
-        if ('' !== $this->remainder) {
-            $this->writeEncoded($this->remainder);
-        }
-        $this->remainder = '';
-        $this->isWriting = false;
-        $this->writeUUFooter();
     }
 }

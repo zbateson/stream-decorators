@@ -1,9 +1,8 @@
 <?php
-
 namespace ZBateson\StreamDecorators;
 
-use GuzzleHttp\Psr7;
 use LegacyPHPUnit\TestCase;
+use GuzzleHttp\Psr7;
 
 /**
  * Description of SeekingLimitStreamTest

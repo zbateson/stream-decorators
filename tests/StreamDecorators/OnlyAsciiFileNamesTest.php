@@ -1,9 +1,8 @@
 <?php
-
 namespace ZBateson\StreamDecorators;
 
-use FilesystemIterator;
 use LegacyPHPUnit\TestCase;
+use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -19,12 +18,11 @@ class OnlyAsciiFileNamesTest extends TestCase
 {
     public function testFileNames()
     {
-        $dir = new RecursiveDirectoryIterator(\dirname(__DIR__), FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::SKIP_DOTS);
+        $dir = new RecursiveDirectoryIterator(dirname(__DIR__), FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::SKIP_DOTS);
         $iter = new RecursiveIteratorIterator($dir);
-
         foreach ($iter as $f) {
             $this->assertTrue(
-                \mb_check_encoding($f->getFileName(), 'ASCII'),
+                mb_check_encoding($f->getFileName(), 'ASCII'),
                 $f->getFileName() . ' contains non-ascii characters, which may '
                     . 'cause problems with some \'unzip\' utilities when '
                     . 'installing via composer'

@@ -4,11 +4,10 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
-
 namespace ZBateson\StreamDecorators;
 
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use Psr\Http\Message\StreamInterface;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
 
 /**
  * Doesn't close the underlying stream when 'close' is called on it.  Instead,

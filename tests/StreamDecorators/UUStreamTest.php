@@ -1,9 +1,9 @@
 <?php
-
 namespace ZBateson\StreamDecorators;
 
-use GuzzleHttp\Psr7;
 use PHPUnit\Framework\TestCase;
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\StreamWrapper;
 use RuntimeException;
 
 /**
@@ -17,45 +17,41 @@ class UUStreamTest extends TestCase
 {
     public function testReadAndRewind()
     {
-        $str = \str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+        $str = str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
             . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é', 10);
-        $stream = Psr7\Utils::streamFor(\convert_uuencode($str));
-
-        for ($i = 1; $i < \strlen($str); ++$i) {
+        $stream = Psr7\Utils::streamFor(convert_uuencode($str));
+        for ($i = 1; $i < strlen($str); ++$i) {
             $stream->rewind();
             $uuStream = new UUStream(new NonClosingStream($stream));
-
-            for ($j = 0; $j < \strlen($str); $j += $i) {
-                $this->assertSame(\substr($str, $j, $i), $uuStream->read($i), "Read {$j} failed at {$i} step");
+            for ($j = 0; $j < strlen($str); $j += $i) {
+                $this->assertSame(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
             }
-            $this->assertSame(\strlen($str), $uuStream->tell(), "Final tell failed with {$i} step");
+            $this->assertSame(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
         }
     }
 
     public function testReadWithCrLf()
     {
-        $str = \str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
+        $str = str_repeat('é J\'interdis aux marchands de vanter trop leur marchandises. Car '
             . 'ils se font vite pédagogues et t\'enseignent comme but ce qui '
             . 'n\'est par essence qu\'un moyen, et te trompant ainsi sur la '
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é', 10);
-        $encoded = \preg_replace('/([^\r]?)\n/', "$1\r\n", \convert_uuencode($str));
+        $encoded = preg_replace('/([^\r]?)\n/', "$1\r\n", convert_uuencode($str));
 
         $stream = Psr7\Utils::streamFor($encoded);
-
-        for ($i = 1; $i < \strlen($str); ++$i) {
+        for ($i = 1; $i < strlen($str); ++$i) {
             $stream->rewind();
             $uuStream = new UUStream(new NonClosingStream($stream));
-
-            for ($j = 0; $j < \strlen($str); $j += $i) {
-                $this->assertSame(\substr($str, $j, $i), $uuStream->read($i), "Read {$j} failed at {$i} step");
+            for ($j = 0; $j < strlen($str); $j += $i) {
+                $this->assertSame(substr($str, $j, $i), $uuStream->read($i), "Read $j failed at $i step");
             }
-            $this->assertSame(\strlen($str), $uuStream->tell(), "Final tell failed with {$i} step");
+            $this->assertSame(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
         }
     }
 
@@ -67,10 +63,9 @@ class UUStreamTest extends TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
-
-        for ($i = 0; $i < \strlen($str); ++$i) {
-            $substr = \substr($str, 0, $i + 1);
-            $stream = Psr7\Utils::streamFor(\convert_uuencode($substr));
+        for ($i = 0; $i < strlen($str); ++$i) {
+            $substr = substr($str, 0, $i + 1);
+            $stream = Psr7\Utils::streamFor(convert_uuencode($substr));
             $uuStream = new UUStream($stream);
             $this->assertSame($substr, $uuStream->getContents());
         }
@@ -84,13 +79,11 @@ class UUStreamTest extends TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
-
-        for ($i = 0; $i < \strlen($str); ++$i) {
-            $stream = Psr7\Utils::streamFor(\convert_uuencode(\substr($str, $i)));
+        for ($i = 0; $i < strlen($str); ++$i) {
+            $stream = Psr7\Utils::streamFor(convert_uuencode(substr($str, $i)));
             $uuStream = new UUStream($stream);
-
-            for ($j = $i; ! $uuStream->eof(); ++$j) {
-                $this->assertEquals(\substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr {$i} iteration {$j}");
+            for ($j = $i; !$uuStream->eof(); ++$j) {
+                $this->assertEquals(substr($str, $j, 1), $uuStream->read(1), "Failed reading to EOF on substr $i iteration $j");
             }
         }
     }
@@ -98,7 +91,7 @@ class UUStreamTest extends TestCase
     public function testGetSize()
     {
         $str = 'Sweetest little pie';
-        $stream = Psr7\Utils::streamFor(\quoted_printable_encode($str));
+        $stream = Psr7\Utils::streamFor(quoted_printable_encode($str));
         $uuStream = new UUStream($stream);
         $this->assertNull($uuStream->getSize());
     }
@@ -112,27 +105,24 @@ class UUStreamTest extends TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
 
-        $stream = Psr7\Utils::streamFor(\convert_uuencode($str));
-
-        for ($i = 1; $i < \strlen($str); ++$i) {
+        $stream = Psr7\Utils::streamFor(convert_uuencode($str));
+        for ($i = 1; $i < strlen($str); ++$i) {
             $stream->rewind();
             $uuStream = new UUStream(new NonClosingStream($stream));
-
-            for ($j = 0; $j < \strlen($str); $j += $i) {
-                $this->assertSame($j, $uuStream->tell(), "Tell at {$j} failed with {$i} step");
+            for ($j = 0; $j < strlen($str); $j += $i) {
+                $this->assertSame($j, $uuStream->tell(), "Tell at $j failed with $i step");
                 $uuStream->read($i);
             }
-            $this->assertSame(\strlen($str), $uuStream->tell(), "Final tell failed with {$i} step");
+            $this->assertSame(strlen($str), $uuStream->tell(), "Final tell failed with $i step");
         }
     }
 
     public function testSeekUnsopported()
     {
-        $stream = Psr7\Utils::streamFor(\quoted_printable_encode('Sweetest little pie'));
+        $stream = Psr7\Utils::streamFor(quoted_printable_encode('Sweetest little pie'));
         $test = new UUStream($stream);
         $this->assertFalse($test->isSeekable());
         $exceptionThrown = false;
-
         try {
             $test->seek(0);
         } catch (RuntimeException $exc) {
@@ -149,12 +139,11 @@ class UUStreamTest extends TestCase
             . 'route à suivre les voilà bientôt qui te dégradent, car si leur '
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
-        $str = \str_repeat($str, 10);
+        $str = str_repeat($str, 10);
+        for ($i = 0; $i < strlen($str); ++$i) {
 
-        for ($i = 0; $i < \strlen($str); ++$i) {
-
-            $substr = \substr($str, 0, $i + 1);
-            $encoded = \convert_uuencode($substr);
+            $substr = substr($str, 0, $i + 1);
+            $encoded = convert_uuencode($substr);
             $encoded = "begin 666 devil.txt\r\n\r\n" . $encoded . "\r\nend\r\n";
 
             $stream = Psr7\Utils::streamFor($encoded);
@@ -167,29 +156,28 @@ class UUStreamTest extends TestCase
     {
         $encoded = __DIR__ . '/../_data/blueball.uu.txt';
         $org = __DIR__ . '/../_data/blueball.png';
-        $stream = new UUStream(Psr7\Utils::streamFor(\fopen($encoded, 'r')));
-        $this->assertSame(\file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
+        $stream = new UUStream(Psr7\Utils::streamFor(fopen($encoded, 'r')));
+        $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testDecodeFileWithSpaces()
     {
         $encoded = __DIR__ . '/../_data/blueball-2.uu.txt';
         $org = __DIR__ . '/../_data/blueball.png';
-        $stream = new UUStream(Psr7\Utils::streamFor(\fopen($encoded, 'r')));
-        $this->assertSame(\file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
+        $stream = new UUStream(Psr7\Utils::streamFor(fopen($encoded, 'r')));
+        $this->assertSame(file_get_contents($org), $stream->getContents(), 'Decoded blueball not equal to original file');
     }
 
     public function testWrite()
     {
         $org = __DIR__ . '/../_data/blueball.png';
-        $contents = \file_get_contents($org);
+        $contents = file_get_contents($org);
 
-        for ($i = 1; $i < \strlen($contents); ++$i) {
-            $stream = Psr7\Utils::streamFor(\fopen('php://temp', 'r+'));
+        for ($i = 1; $i < strlen($contents); ++$i) {
+            $stream = Psr7\Utils::streamFor(fopen('php://temp', 'r+'));
             $out = new UUStream(new NonClosingStream($stream));
-
-            for ($j = 0; $j < \strlen($contents); $j += $i) {
-                $out->write(\substr($contents, $j, $i));
+            for ($j = 0; $j < strlen($contents); $j += $i) {
+                $out->write(substr($contents, $j, $i));
             }
             $out->close();
 
@@ -200,11 +188,10 @@ class UUStreamTest extends TestCase
 
             $stream->rewind();
             $raw = $stream->getContents();
-            $arr = \explode("\r\n", $raw);
-            $this->assertGreaterThan(0, \count($arr));
-
-            for ($x = 0; $x < \count($arr); ++$x) {
-                $this->assertLessThanOrEqual(61, \strlen($arr[$x]));
+            $arr = explode("\r\n", $raw);
+            $this->assertGreaterThan(0, count($arr));
+            for ($x = 0; $x < count($arr); ++$x) {
+                $this->assertLessThanOrEqual(61, strlen($arr[$x]));
             }
         }
     }
@@ -218,13 +205,12 @@ class UUStreamTest extends TestCase
             . 'musique est vulgaire ils te fabriquent pour te la vendre une âme '
             . 'vulgaire.é';
 
-        for ($i = 1; $i < \strlen($contents); ++$i) {
-            $str = \substr($contents, 0, \strlen($contents) - $i);
-            $stream = Psr7\Utils::streamFor(\fopen('php://temp', 'r+'));
+        for ($i = 1; $i < strlen($contents); ++$i) {
+            $str = substr($contents, 0, strlen($contents) - $i);
+            $stream = Psr7\Utils::streamFor(fopen('php://temp', 'r+'));
             $out = new UUStream(new NonClosingStream($stream));
-
-            for ($j = 0; $j < \strlen($str); $j += $i) {
-                $out->write(\substr($str, $j, $i));
+            for ($j = 0; $j < strlen($str); $j += $i) {
+                $out->write(substr($str, $j, $i));
             }
             $out->close();
 
@@ -234,11 +220,10 @@ class UUStreamTest extends TestCase
             $stream->rewind();
 
             $raw = $stream->getContents();
-            $arr = \explode("\r\n", $raw);
-            $this->assertGreaterThan(0, \count($arr));
-
-            for ($x = 0; $x < \count($arr); ++$x) {
-                $this->assertLessThanOrEqual(61, \strlen($arr[$x]));
+            $arr = explode("\r\n", $raw);
+            $this->assertGreaterThan(0, count($arr));
+            for ($x = 0; $x < count($arr); ++$x) {
+                $this->assertLessThanOrEqual(61, strlen($arr[$x]));
             }
         }
     }
