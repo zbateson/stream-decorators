@@ -149,8 +149,8 @@ class QuotedPrintableStreamTest extends TestCase
 
     public function testDecodeFile()
     {
-        $encoded = './tests/_data/blueball.qp.txt';
-        $org = './tests/_data/blueball.png';
+        $encoded = __DIR__ . '/../_data/blueball.qp.txt';
+        $org = __DIR__ . '/../_data/blueball.png';
         $f = fopen($encoded, 'r');
 
         $stream = new QuotedPrintableStream(Psr7\Utils::streamFor($f));
