@@ -1,8 +1,9 @@
 <?php
+
 namespace ZBateson\StreamDecorators;
 
-use LegacyPHPUnit\TestCase;
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Description of SeekingLimitStreamTest
@@ -13,7 +14,7 @@ use GuzzleHttp\Psr7;
  */
 class SeekingLimitStreamTest extends TestCase
 {
-    public function testReadLimits()
+    public function testReadLimits() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 3, 1);
@@ -21,7 +22,7 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertSame('his', $str);
     }
 
-    public function testReadLimitsToEnd()
+    public function testReadLimitsToEnd() : void
     {
         $stream = Psr7\Utils::streamFor('test');
         $res = new SeekingLimitStream($stream, 4, 0);
@@ -29,7 +30,7 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertSame('test', $str);
     }
 
-    public function testPosition()
+    public function testPosition() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 3, 1);
@@ -39,35 +40,35 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertSame(3, $res->tell());
     }
 
-    public function testGetSize()
+    public function testGetSize() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream);
         $this->assertSame($stream->getSize(), $res->getSize());
     }
 
-    public function testGetSizeWithLimit()
+    public function testGetSizeWithLimit() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 5);
         $this->assertSame(5, $res->getSize());
     }
 
-    public function testGetSizeWithLimitAndOffset()
+    public function testGetSizeWithLimitAndOffset() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 5, 1);
         $this->assertSame(5, $res->getSize());
     }
 
-    public function testGetSizeWithLimitBeyondSize()
+    public function testGetSizeWithLimitBeyondSize() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 5, 10);
         $this->assertSame(4, $res->getSize());
     }
 
-    public function testEof()
+    public function testEof() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 3, 1);
@@ -77,7 +78,7 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertTrue($res->eof());
     }
 
-    public function testEofWithStreamAtEnd()
+    public function testEofWithStreamAtEnd() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $stream->getContents();
@@ -89,7 +90,7 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertTrue($res->eof());
     }
 
-    public function testEofWithNoLimit()
+    public function testEofWithNoLimit() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $stream->getContents();
@@ -101,7 +102,7 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertTrue($res->eof());
     }
 
-    public function testEofWithNoLimitAndOffset()
+    public function testEofWithNoLimitAndOffset() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $stream->getContents();
@@ -113,7 +114,7 @@ class SeekingLimitStreamTest extends TestCase
         $this->assertTrue($res->eof());
     }
 
-    public function testSeek()
+    public function testSeek() : void
     {
         $stream = Psr7\Utils::streamFor('This is a test');
         $res = new SeekingLimitStream($stream, 3, 1);

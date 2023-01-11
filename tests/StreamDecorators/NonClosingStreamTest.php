@@ -1,8 +1,9 @@
 <?php
+
 namespace ZBateson\StreamDecorators;
 
-use LegacyPHPUnit\TestCase;
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Description of NonClosingStreamTest
@@ -13,7 +14,7 @@ use GuzzleHttp\Psr7;
  */
 class NonClosingStreamTest extends TestCase
 {
-    public function testClose()
+    public function testClose() : void
     {
         $str = 'Testacular';
         $org = Psr7\Utils::streamFor($str);
@@ -22,7 +23,7 @@ class NonClosingStreamTest extends TestCase
         $this->assertSame($org->getContents(), 'Testacular');
     }
 
-    public function testDetach()
+    public function testDetach() : void
     {
         $str = 'Testacular';
         $org = Psr7\Utils::streamFor($str);

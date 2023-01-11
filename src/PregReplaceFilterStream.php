@@ -4,11 +4,12 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use GuzzleHttp\Psr7\BufferStream;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
 /**
@@ -43,7 +44,7 @@ class PregReplaceFilterStream implements StreamInterface
      */
     private $stream;
 
-    public function __construct(StreamInterface $stream, $pattern, $replacement)
+    public function __construct(StreamInterface $stream, string $pattern, string $replacement)
     {
         $this->stream = $stream;
         $this->pattern = $pattern;
@@ -53,10 +54,8 @@ class PregReplaceFilterStream implements StreamInterface
 
     /**
      * Returns true if the end of stream has been reached.
-     *
-     * @return boolean
      */
-    public function eof()
+    public function eof() : bool
     {
         return ($this->buffer->eof() && $this->stream->eof());
     }
@@ -75,10 +74,8 @@ class PregReplaceFilterStream implements StreamInterface
 
     /**
      * Overridden to return false
-     *
-     * @return boolean
      */
-    public function isSeekable()
+    public function isSeekable() : bool
     {
         return false;
     }
@@ -86,18 +83,16 @@ class PregReplaceFilterStream implements StreamInterface
     /**
      * Fills the BufferStream with at least 8192 characters of input for future
      * read operations.
-     *
-     * @param int $length
      */
-    private function fillBuffer($length)
+    private function fillBuffer(int $length) : void
     {
-        $fill = (int)max([$length, 8192]);
+        $fill = (int) \max([$length, 8192]);
         while ($this->buffer->getSize() < $length) {
             $read = $this->stream->read($fill);
-            if ($read === false || $read === '') {
+            if ($read === '') {
                 break;
             }
-            $this->buffer->write(preg_replace($this->pattern, $this->replacement, $read));
+            $this->buffer->write(\preg_replace($this->pattern, $this->replacement, $read));
         }
     }
 

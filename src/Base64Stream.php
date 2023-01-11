@@ -4,11 +4,12 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
 use GuzzleHttp\Psr7\BufferStream;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
 /**
@@ -64,9 +65,6 @@ class Base64Stream implements StreamInterface
      */
     private $stream;
 
-    /**
-     * @param StreamInterface $stream
-     */
     public function __construct(StreamInterface $stream)
     {
         $this->stream = $stream;
@@ -75,10 +73,8 @@ class Base64Stream implements StreamInterface
 
     /**
      * Returns the current position of the file read/write pointer
-     *
-     * @return int
      */
-    public function tell()
+    public function tell() : int
     {
         return $this->position;
     }
@@ -88,7 +84,7 @@ class Base64Stream implements StreamInterface
      *
      * @return null
      */
-    public function getSize()
+    public function getSize() : ?int
     {
         return null;
     }
@@ -109,20 +105,16 @@ class Base64Stream implements StreamInterface
 
     /**
      * Overridden to return false
-     *
-     * @return boolean
      */
-    public function isSeekable()
+    public function isSeekable() : bool
     {
         return false;
     }
 
     /**
      * Returns true if the end of stream has been reached.
-     *
-     * @return boolean
      */
-    public function eof()
+    public function eof() : bool
     {
         return ($this->buffer->eof() && $this->stream->eof());
     }
@@ -134,18 +126,16 @@ class Base64Stream implements StreamInterface
      * Note that it's expected the underlying stream will only contain valid
      * base64 characters (normally the stream should be wrapped in a
      * PregReplaceFilterStream to filter out non-base64 characters).
-     *
-     * @param int $length
      */
-    private function fillBuffer($length)
+    private function fillBuffer(int $length) : void
     {
         $fill = 8192;
         while ($this->buffer->getSize() < $length) {
             $read = $this->stream->read($fill);
-            if ($read === false || $read === '') {
+            if ($read === '') {
                 break;
             }
-            $this->buffer->write(base64_decode($read));
+            $this->buffer->write(\base64_decode($read));
         }
     }
 
@@ -166,7 +156,7 @@ class Base64Stream implements StreamInterface
         }
         $this->fillBuffer($length);
         $ret = $this->buffer->read($length);
-        $this->position += strlen($ret);
+        $this->position += \strlen($ret);
         return $ret;
     }
 
@@ -184,18 +174,18 @@ class Base64Stream implements StreamInterface
      * @param string $string
      * @return int the number of bytes written
      */
-    public function write($string)
+    public function write($string) : int
     {
         $bytes = $this->remainder . $string;
-        $len = strlen($bytes);
+        $len = \strlen($bytes);
         if (($len % 3) !== 0) {
-            $this->remainder = substr($bytes, -($len % 3));
-            $bytes = substr($bytes, 0, $len - ($len % 3));
+            $this->remainder = \substr($bytes, -($len % 3));
+            $bytes = \substr($bytes, 0, $len - ($len % 3));
         } else {
             $this->remainder = '';
         }
-        $this->stream->write(base64_encode($bytes));
-        $written = strlen($string);
+        $this->stream->write(\base64_encode($bytes));
+        $written = \strlen($string);
         $this->position += $len;
         return $written;
     }
@@ -203,33 +193,31 @@ class Base64Stream implements StreamInterface
     /**
      * Writes out any remaining bytes at the end of the stream and closes.
      */
-    private function beforeClose()
+    private function beforeClose() : void
     {
         if ($this->isWritable() && $this->remainder !== '') {
-            $this->stream->write(base64_encode($this->remainder));
+            $this->stream->write(\base64_encode($this->remainder));
             $this->remainder = '';
         }
     }
 
     /**
-     * Closes the underlying stream after writing out any remaining bytes
-     * needing to be encoded.
-     * @return void
+     * @inheritDoc
      */
-    public function close()
+    public function close() : void
     {
         $this->beforeClose();
         $this->stream->close();
     }
 
     /**
-     * Detaches the underlying stream after writing out any remaining bytes
-     * needing to be encoded.
-     * @return resource|null Underlying PHP stream, if any
+     * @inheritDoc
      */
     public function detach()
     {
         $this->beforeClose();
         $this->stream->detach();
+
+        return null;
     }
 }
