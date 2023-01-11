@@ -4,12 +4,13 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use ZBateson\MbWrapper\MbWrapper;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
+use ZBateson\MbWrapper\MbWrapper;
 
 /**
  * GuzzleHttp\Psr7 stream decoder extension for charset conversion.
@@ -63,7 +64,7 @@ class CharsetStream implements StreamInterface
      * @param string $stringCharset The charset to encode strings to (or
      *        expected for write)
      */
-    public function __construct(StreamInterface $stream, $streamCharset = 'ISO-8859-1', $stringCharset = 'UTF-8')
+    public function __construct(StreamInterface $stream, string $streamCharset = 'ISO-8859-1', string $stringCharset = 'UTF-8')
     {
         $this->stream = $stream;
         $this->converter = new MbWrapper();
@@ -73,10 +74,8 @@ class CharsetStream implements StreamInterface
 
     /**
      * Overridden to return the position in the target encoding.
-     *
-     * @return int
      */
-    public function tell()
+    public function tell() : int
     {
         return $this->position;
     }
@@ -86,7 +85,7 @@ class CharsetStream implements StreamInterface
      *
      * @return null
      */
-    public function getSize()
+    public function getSize() : ?int
     {
         return null;
     }
@@ -105,10 +104,8 @@ class CharsetStream implements StreamInterface
 
     /**
      * Overridden to return false
-     *
-     * @return boolean
      */
-    public function isSeekable()
+    public function isSeekable() : bool
     {
         return false;
     }
@@ -120,15 +117,13 @@ class CharsetStream implements StreamInterface
      * Aligning to 4 bytes seemed to solve an issue reading from UTF-16LE
      * streams and pass testReadUtf16LeToEof, although the buffered string
      * should've solved that on its own.
-     *
-     * @param int $length
      */
-    private function readRawCharsIntoBuffer($length)
+    private function readRawCharsIntoBuffer(int $length) : void
     {
-        $n = (int) ceil(($length + 32) / 4.0) * 4;
+        $n = (int) \ceil(($length + 32) / 4.0) * 4;
         while ($this->bufferLength < $n) {
             $raw = $this->stream->read($n + 512);
-            if ($raw === false || $raw === '') {
+            if ($raw === '') {
                 return;
             }
             $this->buffer .= $raw;
@@ -138,10 +133,8 @@ class CharsetStream implements StreamInterface
 
     /**
      * Returns true if the end of stream has been reached.
-     *
-     * @return boolean
      */
-    public function eof()
+    public function eof() : bool
     {
         return ($this->bufferLength === 0 && $this->stream->eof());
     }
@@ -160,7 +153,7 @@ class CharsetStream implements StreamInterface
             return $this->stream->read($length);
         }
         $this->readRawCharsIntoBuffer($length);
-        $numChars = min([$this->bufferLength, $length]);
+        $numChars = \min([$this->bufferLength, $length]);
         $chars = $this->converter->getSubstr($this->buffer, $this->streamCharset, 0, $numChars);
 
         $this->position += $numChars;
@@ -177,7 +170,7 @@ class CharsetStream implements StreamInterface
      * @param string $string
      * @return int the number of bytes written
      */
-    public function write($string)
+    public function write($string) : int
     {
         $converted = $this->converter->convert($string, $this->stringCharset, $this->streamCharset);
         $written = $this->converter->getLength($converted, $this->streamCharset);

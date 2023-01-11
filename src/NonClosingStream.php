@@ -4,10 +4,11 @@
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  */
+
 namespace ZBateson\StreamDecorators;
 
-use Psr\Http\Message\StreamInterface;
 use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Doesn't close the underlying stream when 'close' is called on it.  Instead,
@@ -40,25 +41,28 @@ class NonClosingStream implements StreamInterface
     use StreamDecoratorTrait;
 
     /**
-     * @var StreamInterface $stream
+     * @var ?StreamInterface $stream
+     * @phpstan-ignore-next-line
      */
     private $stream;
 
     /**
-     * Overridden to detach the underlying stream without closing it.
-     * @return void
+     * @inheritDoc
      */
-    public function close()
+    public function close() : void
     {
         $this->stream = null;
     }
 
     /**
      * Overridden to detach the underlying stream without closing it.
-     * @return resource|null Underlying PHP stream, if any
+     *
+     * @inheritDoc
      */
     public function detach()
     {
         $this->stream = null;
+
+        return null;
     }
 }
