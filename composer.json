@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
+        "php": ">=7.2",
         "guzzlehttp/psr7": "^1.9 | ^2.0",
         "zbateson/mb-wrapper": "^1.0.0"
     },
