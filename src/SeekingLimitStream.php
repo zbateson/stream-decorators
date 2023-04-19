@@ -119,11 +119,8 @@ class SeekingLimitStream implements StreamInterface
      * For SeekingLimitStream, no actual seek is performed on the underlying
      * wrapped stream.  Instead, an internal pointer is set, and the stream is
      * 'seeked' on read operations
-     *
-     * @param int $offset
-     * @param int $whence
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek(int $offset, int $whence = SEEK_SET) : void
     {
         $pos = $offset;
         switch ($whence) {
@@ -176,11 +173,8 @@ class SeekingLimitStream implements StreamInterface
      * Reads from the underlying stream after seeking to the position within the
      * bounds set for this limited stream.  After reading, the wrapped stream is
      * 'seeked' back to its position prior to the call to read().
-     *
-     * @param int $length
-     * @return string
      */
-    public function read($length)
+    public function read(int $length) : string
     {
         $pos = $this->stream->tell();
         $ret = $this->seekAndRead($length);
