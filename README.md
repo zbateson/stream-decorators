@@ -22,7 +22,7 @@ composer require zbateson/stream-decorators
 
 ## Requirements
 
-StreamDecorators requires PHP 7.1 or newer.  Tested on PHP 7.1, 7.2, 7.3, 7.4, 8.0, 8.1 and 8.2.
+StreamDecorators requires PHP 7.2 or newer.  Tested on PHP 7.2, 7.3, 7.4, 8.0, 8.1 and 8.2.
 
 ## Usage
 

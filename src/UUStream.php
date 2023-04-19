@@ -88,11 +88,9 @@ class UUStream implements StreamInterface
     /**
      * Not supported.
      *
-     * @param int $offset
-     * @param int $whence
      * @throws RuntimeException
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek(int $offset, int $whence = SEEK_SET) : void
     {
         throw new RuntimeException('Cannot seek a UUStream');
     }
@@ -173,8 +171,6 @@ class UUStream implements StreamInterface
 
     /**
      * Attempts to read $length bytes after decoding them, and returns them.
-     *
-     * @param int $length
      */
     public function read($length) : string
     {
