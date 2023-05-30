@@ -63,9 +63,11 @@ class PregReplaceFilterStream implements StreamInterface
     /**
      * Not supported by PregReplaceFilterStream
      *
+     * @param int $offset
+     * @param int $whence
      * @throws RuntimeException
      */
-    public function seek(int $offset, int $whence = SEEK_SET) : void
+    public function seek($offset, $whence = SEEK_SET)
     {
         throw new RuntimeException('Cannot seek a PregReplaceFilterStream');
     }
@@ -97,8 +99,11 @@ class PregReplaceFilterStream implements StreamInterface
     /**
      * Reads from the underlying stream, filters it and returns up to $length
      * bytes.
+     *
+     * @param int $length
+     * @return string
      */
-    public function read(int $length) : string
+    public function read($length)
     {
         $this->fillBuffer($length);
         return $this->buffer->read($length);

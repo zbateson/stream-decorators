@@ -93,9 +93,11 @@ class CharsetStream implements StreamInterface
     /**
      * Not supported.
      *
+     * @param int $offset
+     * @param int $whence
      * @throws RuntimeException
      */
-    public function seek(int $offset, int $whence = SEEK_SET) : void
+    public function seek($offset, $whence = SEEK_SET)
     {
         throw new RuntimeException('Cannot seek a CharsetStream');
     }
@@ -140,8 +142,11 @@ class CharsetStream implements StreamInterface
     /**
      * Reads up to $length decoded chars from the underlying stream and returns
      * them after converting to the target string charset.
+     *
+     * @param int $length
+     * @return string
      */
-    public function read(int $length) : string
+    public function read($length)
     {
         // let Guzzle decide what to do.
         if ($length <= 0 || $this->eof()) {
