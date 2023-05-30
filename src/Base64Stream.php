@@ -98,7 +98,7 @@ class Base64Stream implements StreamInterface
      * @param int $whence
      * @throws RuntimeException
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = SEEK_SET) : void
     {
         throw new RuntimeException('Cannot seek a Base64Stream');
     }
@@ -148,7 +148,7 @@ class Base64Stream implements StreamInterface
      * @param int $length
      * @return string
      */
-    public function read($length)
+    public function read($length) : string
     {
         // let Guzzle decide what to do.
         if ($length <= 0 || $this->eof()) {

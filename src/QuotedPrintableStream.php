@@ -61,7 +61,7 @@ class QuotedPrintableStream implements StreamInterface
      * @param int $whence
      * @throws RuntimeException
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = SEEK_SET) : void
     {
         throw new RuntimeException('Cannot seek a QuotedPrintableStream');
     }

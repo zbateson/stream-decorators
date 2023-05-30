@@ -123,7 +123,7 @@ class SeekingLimitStream implements StreamInterface
      * @param int $offset
      * @param int $whence
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = SEEK_SET) : void
     {
         $pos = $offset;
         switch ($whence) {
@@ -180,7 +180,7 @@ class SeekingLimitStream implements StreamInterface
      * @param int $length
      * @return string
      */
-    public function read($length)
+    public function read($length) : string
     {
         $pos = $this->stream->tell();
         $ret = $this->seekAndRead($length);
