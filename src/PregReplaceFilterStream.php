@@ -101,7 +101,6 @@ class PregReplaceFilterStream implements StreamInterface
      * bytes.
      *
      * @param int $length
-     * @return string
      */
     public function read($length) : string
     {

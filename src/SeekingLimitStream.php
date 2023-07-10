@@ -178,7 +178,6 @@ class SeekingLimitStream implements StreamInterface
      * 'seeked' back to its position prior to the call to read().
      *
      * @param int $length
-     * @return string
      */
     public function read($length) : string
     {

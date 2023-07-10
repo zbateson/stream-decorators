@@ -146,7 +146,6 @@ class Base64Stream implements StreamInterface
      * encoded data and is not supported.
      *
      * @param int $length
-     * @return string
      */
     public function read($length) : string
     {

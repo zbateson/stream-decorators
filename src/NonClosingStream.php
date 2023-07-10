@@ -51,7 +51,7 @@ class NonClosingStream implements StreamInterface
      */
     public function close() : void
     {
-        $this->stream = null;
+        $this->stream = null;	// @phpstan-ignore-line
     }
 
     /**
@@ -61,7 +61,7 @@ class NonClosingStream implements StreamInterface
      */
     public function detach()
     {
-        $this->stream = null;
+        $this->stream = null;	// @phpstan-ignore-line
 
         return null;
     }
