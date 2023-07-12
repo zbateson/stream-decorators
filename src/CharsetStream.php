@@ -144,7 +144,6 @@ class CharsetStream implements StreamInterface
      * them after converting to the target string charset.
      *
      * @param int $length
-     * @return string
      */
     public function read($length) : string
     {
