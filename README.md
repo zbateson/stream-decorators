@@ -20,9 +20,19 @@ To include it for use in your project, please install via composer:
 composer require zbateson/stream-decorators
 ```
 
+## Php 7 Support Dropped
+
+As of stream-decorators 2.0, support for php 7 has been dropped.
+
 ## Requirements
 
-StreamDecorators requires PHP 7.2 or newer.  Tested on PHP 7.2, 7.3, 7.4, 8.0, 8.1 and 8.2.
+stream-decorators requires PHP 8.0 or newer.  Tested on 8.0, 8.1, 8.2 and 8.3.
+
+## New in 2.0
+
+Support for guzzlehttp/psr7 1.9 dropped, min supported version is 2.0.
+
+zbateson/mb-wrapper has been updated to 2.0 as well, which throws an UnsupportedCharsetException converting from/to an unsupported charset, which changes the behaviour of CharsetStream.
 
 ## Usage
 
