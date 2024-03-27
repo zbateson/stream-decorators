@@ -15,34 +15,32 @@ use Psr\Http\Message\StreamInterface;
  * seeks back to the original position of the underlying stream after reading if
  * the attached stream supports seeking.
  *
- * Although based on LimitStream, it's not inherited from it since $offset and
- * $limit are set to private on LimitStream, and most other functions are re-
- * implemented anyway.  This also decouples the implementation from upstream
+ * Although copied form LimitStream, it's not inherited from it since $offset
+ * and $limit are set to private on LimitStream, and most other functions are
+ * re-implemented anyway.  This also decouples the implementation from upstream
  * changes.
- *
- * @author Zaahid Bateson
  */
 class SeekingLimitStream implements StreamInterface
 {
     use StreamDecoratorTrait;
 
     /** @var int Offset to start reading from */
-    private $offset;
+    private int $offset;
 
     /** @var int Limit the number of bytes that can be read */
-    private $limit;
+    private int $limit;
 
     /**
      * @var int Number of bytes written, and importantly, if non-zero, writes a
      *      final $lineEnding on close (and so maintained instead of using
      *      tell() directly)
      */
-    private $position = 0;
+    private int $position = 0;
 
     /**
      * @var StreamInterface $stream
      */
-    private $stream;
+    private StreamInterface $stream;
 
     /**
      * @param StreamInterface $stream Stream to wrap

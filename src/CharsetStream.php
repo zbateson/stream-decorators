@@ -24,39 +24,39 @@ class CharsetStream implements StreamInterface
     /**
      * @var MbWrapper the charset converter
      */
-    protected $converter = null;
+    protected MbWrapper $converter;
 
     /**
      * @var string charset of the source stream
      */
-    protected $streamCharset = 'ISO-8859-1';
+    protected string $streamCharset = 'ISO-8859-1';
 
     /**
      * @var string charset of strings passed in write operations, and returned
      *      in read operations.
      */
-    protected $stringCharset = 'UTF-8';
+    protected string $stringCharset = 'UTF-8';
 
     /**
      * @var int current read/write position
      */
-    private $position = 0;
+    private int $position = 0;
 
     /**
      * @var int number of $stringCharset characters in $buffer
      */
-    private $bufferLength = 0;
+    private int $bufferLength = 0;
 
     /**
      * @var string a buffer of characters read in the original $streamCharset
      *      encoding
      */
-    private $buffer = '';
+    private string $buffer = '';
 
     /**
      * @var StreamInterface $stream
      */
-    private $stream;
+    private StreamInterface $stream;
 
     /**
      * @param StreamInterface $stream Stream to decorate

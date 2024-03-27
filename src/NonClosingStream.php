@@ -44,7 +44,7 @@ class NonClosingStream implements StreamInterface
      * @var ?StreamInterface $stream
      * @phpstan-ignore-next-line
      */
-    private $stream;
+    private ?StreamInterface $stream;
 
     /**
      * @inheritDoc
@@ -62,7 +62,6 @@ class NonClosingStream implements StreamInterface
     public function detach()
     {
         $this->stream = null;	// @phpstan-ignore-line
-
         return null;
     }
 }

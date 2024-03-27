@@ -47,23 +47,23 @@ class Base64Stream implements StreamInterface
     /**
      * @var BufferStream buffered bytes
      */
-    private $buffer;
+    private BufferStream $buffer;
 
     /**
      * @var string remainder of write operation if the bytes didn't align to 3
      *      bytes
      */
-    private $remainder = '';
+    private string $remainder = '';
 
     /**
      * @var int current number of read/written bytes (for tell())
      */
-    private $position = 0;
+    private int $position = 0;
 
     /**
      * @var StreamInterface $stream
      */
-    private $stream;
+    private StreamInterface $stream;
 
     public function __construct(StreamInterface $stream)
     {

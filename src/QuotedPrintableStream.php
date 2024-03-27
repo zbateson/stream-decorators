@@ -23,18 +23,18 @@ class QuotedPrintableStream implements StreamInterface
     /**
      * @var int current read/write position
      */
-    private $position = 0;
+    private int $position = 0;
 
     /**
      * @var string Last line of written text (used to maintain good line-breaks)
      */
-    private $lastLine = '';
+    private string $lastLine = '';
 
     /**
      * @var StreamInterface $stream
      * @phpstan-ignore-next-line
      */
-    private $stream;
+    private StreamInterface $stream;
 
     /**
      * Overridden to return the position in the target encoding.

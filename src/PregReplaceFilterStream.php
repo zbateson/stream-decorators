@@ -27,22 +27,22 @@ class PregReplaceFilterStream implements StreamInterface
     /**
      * @var string The regex pattern
      */
-    private $pattern;
+    private string $pattern;
 
     /**
      * @var string The replacement
      */
-    private $replacement;
+    private string $replacement;
 
     /**
      * @var BufferStream Buffered stream of input from the underlying stream
      */
-    private $buffer;
+    private BufferStream $buffer;
 
     /**
      * @var StreamInterface $stream
      */
-    private $stream;
+    private StreamInterface $stream;
 
     public function __construct(StreamInterface $stream, string $pattern, string $replacement)
     {
