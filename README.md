@@ -26,7 +26,7 @@ As of stream-decorators 2.0, support for php 7 has been dropped.
 
 ## Requirements
 
-stream-decorators requires PHP 8.0 or newer.  Tested on 8.0, 8.1, 8.2 and 8.3.
+stream-decorators requires PHP 8.0 or newer.  Tested on 8.0, 8.1, 8.2, 8.3 and 8.4.
 
 ## New in 2.0 and 2.1
 
