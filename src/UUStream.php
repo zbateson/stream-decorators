@@ -26,43 +26,39 @@ class UUStream implements StreamInterface
     use StreamDecoratorTrait;
 
     /**
-     * @var string name of the UUEncoded file
+     * @var ?string name of the UUEncoded file
      */
-    protected $filename = null;
+    protected ?string $filename = null;
 
     /**
      * @var BufferStream of read and decoded bytes
      */
-    private $buffer;
+    private readonly BufferStream $buffer;
 
     /**
      * @var string remainder of write operation if the bytes didn't align to 3
      *      bytes
      */
-    private $remainder = '';
+    private string $remainder = '';
 
     /**
      * @var int read/write position
      */
-    private $position = 0;
+    private int $position = 0;
 
     /**
      * @var bool set to true when 'write' is called
      */
-    private $isWriting = false;
-
-    /**
-     * @var StreamInterface $stream
-     */
-    private $stream;
+    private bool $isWriting = false;
 
     /**
      * @param StreamInterface $stream Stream to decorate
      * @param string $filename optional file name
      */
-    public function __construct(StreamInterface $stream, ?string $filename = null)
-    {
-        $this->stream = $stream;
+    public function __construct(
+        private readonly StreamInterface $stream,
+        ?string $filename = null,
+    ) {
         $this->filename = $filename;
         $this->buffer = new BufferStream();
     }
@@ -92,7 +88,7 @@ class UUStream implements StreamInterface
      * @param int $whence
      * @throws RuntimeException
      */
-    public function seek($offset, $whence = SEEK_SET) : void
+    public function seek($offset, $whence = SEEK_SET) : never
     {
         throw new RuntimeException('Cannot seek a UUStream');
     }
@@ -115,7 +111,7 @@ class UUStream implements StreamInterface
         if ($str === '') {
             return $str;
         }
-        while (\substr($str, -1) !== "\n") {
+        while (!\str_ends_with($str, "\n")) {
             $chr = $this->stream->read(1);
             if ($chr === '') {
                 break;
@@ -264,7 +260,7 @@ class UUStream implements StreamInterface
     /**
      * Returns the filename set in the UUEncoded header (or null)
      */
-    public function getFilename() : string
+    public function getFilename() : ?string
     {
         return $this->filename;
     }
