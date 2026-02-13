@@ -1,4 +1,4 @@
 vendor
-tests/.phpunit.result.cache
+tests/.phpunit.cache
 composer.lock
 .php-cs-fixer.cache
