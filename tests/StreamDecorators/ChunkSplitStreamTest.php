@@ -3,15 +3,12 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Description of ChunkSplitStreamTest
- *
- * @group ChunkSplitStream
- * @covers ZBateson\StreamDecorators\ChunkSplitStream
- * @author Zaahid Bateson
- */
+#[CoversClass(ChunkSplitStream::class)]
+#[Group('ChunkSplitStream')]
 class ChunkSplitStreamTest extends TestCase
 {
     public function testWrite() : void

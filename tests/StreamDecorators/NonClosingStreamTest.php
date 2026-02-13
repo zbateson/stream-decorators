@@ -3,15 +3,12 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Description of NonClosingStreamTest
- *
- * @group NonClosingStream
- * @covers ZBateson\StreamDecorators\NonClosingStream
- * @author Zaahid Bateson
- */
+#[CoversClass(NonClosingStream::class)]
+#[Group('NonClosingStream')]
 class NonClosingStreamTest extends TestCase
 {
     public function testClose() : void

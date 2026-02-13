@@ -2,17 +2,14 @@
 
 namespace ZBateson\StreamDecorators;
 
-use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\Psr7\BufferStream;
+use GuzzleHttp\Psr7\Utils;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Description of DecoratedCachingStreamTest
- *
- * @group DecoratedCachingStream
- * @covers ZBateson\StreamDecorators\DecoratedCachingStream
- * @author Zaahid Bateson
- */
+#[CoversClass(DecoratedCachingStream::class)]
+#[Group('DecoratedCachingStream')]
 class DecoratedCachingStreamTest extends TestCase
 {
     public function testReadRewind() : void

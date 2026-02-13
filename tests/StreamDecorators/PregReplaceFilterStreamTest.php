@@ -3,16 +3,13 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-/**
- * Description of PregReplaceFilterStreamTest
- *
- * @group PregReplaceFilterStream
- * @covers ZBateson\StreamDecorators\PregReplaceFilterStream
- * @author Zaahid Bateson
- */
+#[CoversClass(PregReplaceFilterStream::class)]
+#[Group('PregReplaceFilterStream')]
 class PregReplaceFilterStreamTest extends TestCase
 {
     public function testRead() : void

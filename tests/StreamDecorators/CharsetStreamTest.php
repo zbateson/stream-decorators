@@ -3,17 +3,14 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use ZBateson\MbWrapper\MbWrapper;
 
-/**
- * Description of CharsetStreamTest
- *
- * @group CharsetStream
- * @covers ZBateson\StreamDecorators\CharsetStream
- * @author Zaahid Bateson
- */
+#[CoversClass(CharsetStream::class)]
+#[Group('CharsetStream')]
 class CharsetStreamTest extends TestCase
 {
     /**

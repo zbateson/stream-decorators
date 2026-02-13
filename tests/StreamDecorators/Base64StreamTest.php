@@ -4,16 +4,13 @@ namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-/**
- * Description of Base64StreamTest
- *
- * @group Base64Stream
- * @covers ZBateson\StreamDecorators\Base64Stream
- * @author Zaahid Bateson
- */
+#[CoversClass(Base64Stream::class)]
+#[Group('Base64Stream')]
 class Base64StreamTest extends TestCase
 {
     public function testReadContents() : void

@@ -3,15 +3,12 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7\BufferStream;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Description of TellZeroStreamTest
- *
- * @group TellZeroStream
- * @covers ZBateson\StreamDecorators\TellZeroStream
- * @author Zaahid Bateson
- */
+#[CoversClass(TellZeroStream::class)]
+#[Group('TellZeroStream')]
 class TellZeroStreamTest extends TestCase
 {
     public function testTell() : void

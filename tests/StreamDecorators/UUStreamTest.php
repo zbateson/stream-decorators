@@ -3,16 +3,13 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-/**
- * Description of UUStreamTest
- *
- * @group UUStream
- * @covers ZBateson\StreamDecorators\UUStream
- * @author Zaahid Bateson
- */
+#[CoversClass(UUStream::class)]
+#[Group('UUStream')]
 class UUStreamTest extends TestCase
 {
     public function testReadAndRewind() : void

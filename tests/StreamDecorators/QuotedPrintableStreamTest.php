@@ -3,16 +3,13 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-/**
- * Description of QuotedPrintableStreamTest
- *
- * @group QuotedPrintableStream
- * @covers ZBateson\StreamDecorators\QuotedPrintableStream
- * @author Zaahid Bateson
- */
+#[CoversClass(QuotedPrintableStream::class)]
+#[Group('QuotedPrintableStream')]
 class QuotedPrintableStreamTest extends TestCase
 {
     public function testReadAndRewind() : void

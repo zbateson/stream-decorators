@@ -3,15 +3,12 @@
 namespace ZBateson\StreamDecorators;
 
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Description of SeekingLimitStreamTest
- *
- * @group SeekingLimitStream
- * @covers ZBateson\StreamDecorators\SeekingLimitStream
- * @author Zaahid Bateson
- */
+#[CoversClass(SeekingLimitStream::class)]
+#[Group('SeekingLimitStream')]
 class SeekingLimitStreamTest extends TestCase
 {
     public function testReadLimits() : void
