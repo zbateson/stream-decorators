@@ -149,6 +149,15 @@ class UUStreamTest extends TestCase
         }
     }
 
+    public function testDecodeLargePayloadAcrossChunkBoundaries() : void
+    {
+        // larger than the internal 5040-byte read chunk so lines span boundaries
+        $str = \str_repeat('The quick brown fox jumps over the lazy dog. ', 1000);
+        $encoded = \convert_uuencode($str);
+        $stream = new UUStream(Psr7\Utils::streamFor($encoded));
+        $this->assertSame($str, $stream->getContents());
+    }
+
     public function testDecodeFile() : void
     {
         $encoded = __DIR__ . '/../_data/blueball.uu.txt';
